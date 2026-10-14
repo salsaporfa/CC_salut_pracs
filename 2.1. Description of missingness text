@@ -1,0 +1,25 @@
+load("copd_redux.RData")
+n <- length(copd$id) #342 participants
+v <- ncol(copd) #45 variables
+M <- n*v
+
+missing <- colSums(is.na(copd)) 
+miss_percentatge <- colMeans(is.na(copd))*100
+
+start <- min(miss_percentatge)
+end <- max(round(miss_percentatge, 1))
+print(c(start, end)) #0% and 31.6
+
+miss_under_5 <- sum(miss_percentatge < 5)
+pctg_under_5 <- (miss_under_5/v) * 100
+round(pctg_under_5, 1) #with 68.9% of variables less than 5% missing
+
+complete <- sum(miss_percentatge == 0)
+complete_pctg <- (complete/v)*100
+round(complete_pctg, 1) #Only 11.1% had complete data on all variables
+
+overall <- sum(is.na(copd))
+overall
+
+overall_pctg <- (overall/M)*100
+round(overall_pctg,1) #Overall, 5.4% of the information is missing
