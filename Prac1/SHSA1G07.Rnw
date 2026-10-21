@@ -1,0 +1,130 @@
+\documentclass[10pt,a4paper,twoside]{article}
+\linespread{1.1}
+%paquetes
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{hyperref}
+\usepackage[hang,footnotesize,bf]{caption}
+\usepackage{amsmath}
+\usepackage[left=2.5cm,top=3cm,bottom=3cm,right=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=10pt,font=small,labelfont=bf]{caption}
+\usepackage[normalem]{ulem}
+\usepackage{bbold}
+\usepackage{hyperref}
+\usepackage[super]{natbib}
+\usepackage{enumitem}
+\usepackage{float}
+
+
+%new_commands
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+
+% Las librerías que hacen falta por ahora
+
+<<libraries, include=FALSE>>=
+library(knitr)
+library(highlight)  # to highlight R output
+library(xtable)     # to create nice LaTeX tables
+library(epitools)
+library(mice)
+@
+
+<<setting, include=FALSE, purl=FALSE>>= 
+options( width = 90, scipen = 4 ) 
+opts_chunk$set( echo = FALSE, eval = TRUE, message = TRUE, warning = TRUE, size = "footnotesize", cache = TRUE, prompt = TRUE) 
+@
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{4cm}
+    \textbf{\Huge Statistics in Health Sciences}
+    \vspace{4em}\\
+    \textbf{\huge \underline{Assignment 1}} \\[1em]
+    \large{Cluster analysis with missing data using the \texttt{R} packages \texttt{mice} and \texttt{miclust}}\\
+    [1em]
+    Jordi Ye, NIU: 1751973\\
+    Xavier Gaseni Piñol, NIU: 1753108\\
+    Alejandro Cabezas Bamba, NIU: 1749626\\
+    Xinyu Lou, NIU: 1635130
+    \vfill
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper.
+
+\section{Analysis}
+\subsection{Description of missingness}
+Provide the same missingness description than in the original analysis. Specifically, reproduce the following text that is shown in the original paper:\\[10pt]
+The required packages are:
+\begin{itemize}
+  \item Number of participants;
+  \item Number of variables;
+  \item Missing data percentage of each variable;
+  \item Missing data percentage of less than $5\%$ of missing;
+  \item Percentage of variables with all variables without any missing;
+  \item Percentage among all cell with missing data.
+\end{itemize}
+<<Description_of_missingness, include=TRUE, echo = TRUE>>=
+load("copd_redux.RData")
+n <- length(copd$id) #participant number
+v <- ncol(copd) #variables number
+M <- n*v #cell number
+
+missing <- colSums(is.na(copd)) 
+miss_percentatge <- (missing/n)*100 #missing 
+
+minimum_missing_pp <- min(miss_percentatge) #minimum missing percentage
+maximum_missing_pp <- max(miss_percentatge) #maximum missing percentage
+
+miss_under_5 <- sum(miss_percentatge < 5)
+pctg_under_5 <- (miss_under_5/v) * 100
+#percentage of variables with less than 5% missing
+
+complete <- sum(miss_percentatge == 0)
+complete_pctg <- (complete/v)*100
+#percentage of patients with complete data on all variables
+
+overall <- sum(is.na(copd))
+overall_pctg <- (overall/M)*100 
+#Overall percentage of the information is missing
+@
+Now we complete the missing values of the text:\\
+
+“The subset used here included \textcolor{red}{\Sexpr{n}} participants and \textcolor{red}{\Sexpr{v}} variables. The range of missing data in the different variables went from \textcolor{red}{\Sexpr{v}}\%, with \textcolor{red}{\Sexpr{minimum_missing_pp}}\% to \textcolor{red}{\Sexpr{sprintf("%.1f",maximum_missing_pp)}}\%, with \textcolor{red}{\Sexpr{sprintf("%.1f", pctg_under_5)}}\% of the variables having less than 5\% of the data missing. Only \textcolor{red}{\Sexpr{sprintf("%.1f", complete_pctg)}} of the participants had complete data on all  \textcolor{red}{\Sexpr{v}} variables. Overall, \textcolor{red}{\Sexpr{sprintf("%.1f", complete_pctg)}} of the information was missing; that is, \textcolor{red}{\Sexpr{sprintf("%.1f", overall_pctg)}}\% of  \textcolor{red}{\Sexpr{prettyNum(M, big.mark = ",")}} cells ($\textcolor{red}{\Sexpr{v}} \times \textcolor{red}{\Sexpr{n}} = \textcolor{red}{\Sexpr{prettyNum(M, big.mark = ",")}}$) had missing data.”
+
+\subsection{Multiple imputation}
+Apply multiple imputation to \texttt{copd} data using 100 imputations. Explain in a reasoned manner how you decided to set the arguments \texttt{method} and \texttt{predictorMatrix} when using the \texttt{mice()} function.\\[5pt]
+
+Before staring to decide the arguments for \texttt{method} and \texttt{predictorMatrix} we should do a little summary to know the classes of each variable of this \texttt{copd} data-set. 
+<<Multiple_imputation_1, include = TRUE, echo = TRUE>>=
+str(copd)
+@
+As we see, most of the variables are numerical, however there are some variables which are factors. Their names and corresponding numbers of levels are listed below:
+<<Multiple_imputation_2, include=TRUE, echo=TRUE>>=
+categoricas <- names(copd)[sapply(copd, is.factor)]
+categoricas_latex <- gsub("_", "\\\\_", categoricas)
+niveles <- sapply(copd[categoricas], nlevels)
+binarias <- names(niveles[niveles == 2])
+binarias_latex <- gsub("_", "\\\\_", binarias)
+no_binarias <- names(niveles[niveles > 2])
+
+@
+As we can see, this data set has \Sexpr{length(categoricas)} variables that are
+factors, and their names are \texttt{\Sexpr{paste(categoricas_latex, collapse = ", ")}}. The following factors are binary distributed: \texttt{\Sexpr{paste(binarias_latex, collapse = ", ")}}
+
+
+
+\end{document}

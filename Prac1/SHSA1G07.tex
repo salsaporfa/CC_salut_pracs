@@ -1,0 +1,231 @@
+\documentclass[10pt,a4paper,twoside]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\linespread{1.1}
+%paquetes
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{hyperref}
+\usepackage[hang,footnotesize,bf]{caption}
+\usepackage{amsmath}
+\usepackage[left=2.5cm,top=3cm,bottom=3cm,right=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=10pt,font=small,labelfont=bf]{caption}
+\usepackage[normalem]{ulem}
+\usepackage{bbold}
+\usepackage{hyperref}
+\usepackage[super]{natbib}
+\usepackage{enumitem}
+\usepackage{float}
+
+
+%new_commands
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+
+% Las librerías que hacen falta por ahora
+
+
+
+
+
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{4cm}
+    \textbf{\Huge Statistics in Health Sciences}
+    \vspace{4em}\\
+    \textbf{\huge \underline{Assignment 1}} \\[1em]
+    \large{Cluster analysis with missing data using the \texttt{R} packages \texttt{mice} and \texttt{miclust}}\\
+    [1em]
+    Jordi Ye, NIU: 1751973\\
+    Xavier Gaseni Piñol, NIU: 1753108\\
+    Alejandro Cabezas Bamba, NIU: 1749626\\
+    Xinyu Lou, NIU: 1635130
+    \vfill
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper.
+
+\section{Analysis}
+\subsection{Description of missingness}
+Provide the same missingness description than in the original analysis. Specifically, reproduce the following text that is shown in the original paper:\\[10pt]
+The required packages are:
+\begin{itemize}
+  \item Number of participants;
+  \item Number of variables;
+  \item Missing data percentage of each variable;
+  \item Missing data percentage of less than $5\%$ of missing;
+  \item Percentage of variables with all variables without any missing;
+  \item Percentage among all cell with missing data.
+\end{itemize}
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hlkwd{load}\hldef{(}\hlsng{"copd_redux.RData"}\hldef{)}
+\hldef{> }\hldef{n} \hlkwb{<-} \hlkwd{length}\hldef{(copd}\hlopt{$}\hldef{id)} \hlcom{#participant number}
+\hldef{> }\hldef{v} \hlkwb{<-} \hlkwd{ncol}\hldef{(copd)} \hlcom{#variables number}
+\hldef{> }\hldef{M} \hlkwb{<-} \hldef{n}\hlopt{*}\hldef{v} \hlcom{#cell number}
+\hldef{> }
+\hldef{> }\hldef{missing} \hlkwb{<-} \hlkwd{colSums}\hldef{(}\hlkwd{is.na}\hldef{(copd))}
+\hldef{> }\hldef{miss_percentatge} \hlkwb{<-} \hldef{(missing}\hlopt{/}\hldef{n)}\hlopt{*}\hlnum{100} \hlcom{#missing }
+\hldef{> }
+\hldef{> }\hldef{minimum_missing_pp} \hlkwb{<-} \hlkwd{min}\hldef{(miss_percentatge)} \hlcom{#minimum missing percentage}
+\hldef{> }\hldef{maximum_missing_pp} \hlkwb{<-} \hlkwd{max}\hldef{(miss_percentatge)} \hlcom{#maximum missing percentage}
+\hldef{> }
+\hldef{> }\hldef{miss_under_5} \hlkwb{<-} \hlkwd{sum}\hldef{(miss_percentatge} \hlopt{<} \hlnum{5}\hldef{)}
+\hldef{> }\hldef{pctg_under_5} \hlkwb{<-} \hldef{(miss_under_5}\hlopt{/}\hldef{v)} \hlopt{*} \hlnum{100}
+\hldef{> }\hlcom{#percentage of variables with less than 5% missing}
+\hldef{> }
+\hldef{> }\hldef{complete} \hlkwb{<-} \hlkwd{sum}\hldef{(miss_percentatge} \hlopt{==} \hlnum{0}\hldef{)}
+\hldef{> }\hldef{complete_pctg} \hlkwb{<-} \hldef{(complete}\hlopt{/}\hldef{v)}\hlopt{*}\hlnum{100}
+\hldef{> }\hlcom{#percentage of patients with complete data on all variables}
+\hldef{> }
+\hldef{> }\hldef{overall} \hlkwb{<-} \hlkwd{sum}\hldef{(}\hlkwd{is.na}\hldef{(copd))}
+\hldef{> }\hldef{overall_pctg} \hlkwb{<-} \hldef{(overall}\hlopt{/}\hldef{M)}\hlopt{*}\hlnum{100}
+\hldef{> }\hlcom{#Overall percentage of the information is missing}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+Now we complete the missing values of the text:\\
+
+“The subset used here included \textcolor{red}{342} participants and \textcolor{red}{45} variables. The range of missing data in the different variables went from \textcolor{red}{45}\%, with \textcolor{red}{0}\% to \textcolor{red}{31.6}\%, with \textcolor{red}{68.9}\% of the variables having less than 5\% of the data missing. Only \textcolor{red}{11.1} of the participants had complete data on all  \textcolor{red}{45} variables. Overall, \textcolor{red}{11.1} of the information was missing; that is, \textcolor{red}{5.4}\% of  \textcolor{red}{15,390} cells ($\textcolor{red}{45} \times \textcolor{red}{342} = \textcolor{red}{15,390}$) had missing data.”
+
+\subsection{Multiple imputation}
+Apply multiple imputation to \texttt{copd} data using 100 imputations. Explain in a reasoned manner how you decided to set the arguments \texttt{method} and \texttt{predictorMatrix} when using the \texttt{mice()} function.\\[5pt]
+
+Before staring to decide the arguments for \texttt{method} and \texttt{predictorMatrix} we should do a little summary to know the classes of each variable of this \texttt{copd} data-set. 
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hlkwd{str}\hldef{(copd)}
+\end{alltt}
+\begin{verbatim}
+## 'data.frame':	342 obs. of  45 variables:
+##  $ id               : num  3045 5155 5062 5146 1055 ...
+##  $ index_barthel2v1 : num  100 100 100 100 100 90 100 100 100 100 ...
+##  $ quo_calcpostv1   : num  40.5 55.2 28.6 67 40.5 ...
+##  $ rv_prepv1        : num  180 134 202 125 166 ...
+##  $ incp_fevv1       : num  10.619 -0.694 -4.255 -1.408 20.976 ...
+##  $ fevp_postv1      : num  40 76.9 20.1 70.4 40.7 ...
+##  $ rv_tlcv1         : num  54.8 46.5 71.8 46.2 51.8 ...
+##  $ ctnf_s_mv1       : num  2.957 0.045 1.023 0.64 0.557 ...
+##  $ vtdvdbid_ecov1   : num  30 32 NA 29 NA NA NA NA NA NA ...
+##  $ pp_ecov1         : num  11 8 10 10 9.5 9 10 11 9 9 ...
+##  $ sin11_v1         : Factor w/ 2 levels "0","1": 2 1 1 2 1 2 1 2 1 1 ...
+##  $ vas2_v1          : num  8 4 0 4 5 ...
+##  $ ic_prepv1        : num  67.9 96.7 38.7 80.2 85.2 ...
+##  $ iam_chv1         : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 2 1 1 ...
+##  $ sin15_v1         : Factor w/ 2 levels "0","1": 2 1 1 1 2 1 1 1 2 1 ...
+##  $ cil8_s_mv1       : num  3.59 2.75 3.72 2.8 6.04 ...
+##  $ sin7_v1          : Factor w/ 2 levels "0","1": 1 1 1 2 1 1 1 1 1 1 ...
+##  $ sin8_v1          : Factor w/ 2 levels "0","1": 2 2 2 2 2 2 1 1 1 2 ...
+##  $ ch_v1            : num  0.4 1 2.6 1.8 0.8 ...
+##  $ vc_prepv1        : num  73.4 92.4 49 88.7 73.4 ...
+##  $ dtdve_ecov1      : num  63 45 55 60 53 48 49 51 57 49 ...
+##  $ cccs1_v0         : Factor w/ 2 levels "0","1": 2 1 1 1 2 1 1 1 1 2 ...
+##  $ kcals_set_v0     : num  1635 15055 2265 6054 10965 ...
+##  $ impactsv1        : num  29.46 3.55 35.51 24.72 23.22 ...
+##  $ monoA_v1         : num  0.41 0.495 0.827 0.543 0.289 ...
+##  $ lvmass_ase_ecov1 : num  302914 142108 219991 287863 199797 ...
+##  $ vtit_catv1       : Factor w/ 2 levels "0","1": 1 NA 1 2 2 NA NA 1 1 NA ...
+##  $ urg_ambv0        : Factor w/ 2 levels "0","1": 1 1 1 1 2 1 1 1 2 1 ...
+##  $ po2_v1           : num  63.1 80.5 63.5 92 80 ...
+##  $ ahpf_v1          : num  2.5 3.2 3 2.9 4 ...
+##  $ pro_v1           : num  6.73 6.93 7.7 6.8 6.9 ...
+##  $ basA_v1          : num  0.1104 0.0228 0.0165 0.032 0.0346 ...
+##  $ fc_pmv1          : num  0 2 0 1 0 1 5 0 0 0 ...
+##  $ tad_v1           : num  80 93 80 90 75 70 94 90 80 86 ...
+##  $ col_v1           : num  174 282 NA 174 145 135 168 213 211 212 ...
+##  $ sin5_v1          : Factor w/ 2 levels "0","1": 2 2 1 1 2 1 2 1 1 1 ...
+##  $ bc_v1            : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ fvcp_postv1      : num  66.1 102.9 43.2 83.5 67.2 ...
+##  $ vas1_v1          : num  1 2 1.7 3.2 0 ...
+##  $ sin6_v1          : Factor w/ 2 levels "0","1": 2 1 2 2 1 1 1 1 2 2 ...
+##  $ graudisn_v1      : Factor w/ 6 levels "0","1","2","3",..: 4 3 3 4 3 6 6 3 3 1 ...
+##  $ cpcr_mg_l_mediav1: num  0.08 3.11 1.07 0.08 0.08 ...
+##  $ neutA_v1         : num  4.78 6.05 5.22 3.51 2.74 ...
+##  $ ahpl_v1          : num  1 2.2 2.3 5.2 1 ...
+##  $ activityv1       : num  61.3 35.5 41.8 35.6 36.3 ...
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+As we see, most of the variables are numerical, however there are some variables which are factors. Their names and corresponding numbers of levels are listed below:
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{categoricas} \hlkwb{<-} \hlkwd{names}\hldef{(copd)[}\hlkwd{sapply}\hldef{(copd, is.factor)]}
+\hldef{> }\hldef{categoricas_latex} \hlkwb{<-} \hlkwd{gsub}\hldef{(}\hlsng{"_"}\hldef{,} \hlsng{"\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}_"}\hldef{, categoricas)}
+\hldef{> }\hldef{niveles} \hlkwb{<-} \hlkwd{sapply}\hldef{(copd[categoricas], nlevels)}
+\hldef{> }\hldef{binarias} \hlkwb{<-} \hlkwd{names}\hldef{(niveles[niveles} \hlopt{==} \hlnum{2}\hldef{])}
+\hldef{> }\hldef{binarias_latex} \hlkwb{<-} \hlkwd{gsub}\hldef{(}\hlsng{"_"}\hldef{,} \hlsng{"\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}_"}\hldef{, binarias)}
+\hldef{> }\hldef{no_binarias} \hlkwb{<-} \hlkwd{names}\hldef{(niveles[niveles} \hlopt{>} \hlnum{2}\hldef{])}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+As we can see, this data set has 11 variables that are
+factors, and their names are \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1, graudisn\_v1}. The following factors are binary distributed: \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1}
+
+
+
+\end{document}
