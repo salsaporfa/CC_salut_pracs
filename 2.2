@@ -1,0 +1,11 @@
+library(mice)
+ini <- mice(copd, maxit = 0)
+ini
+
+meth <- ini$method
+meth
+
+pred <- ini$predictorMatrix
+
+
+imp <- mice(copd,m = 100, method = meth, predictorMatrix = pred, seed = 666)
