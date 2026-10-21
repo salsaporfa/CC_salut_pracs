@@ -1,0 +1,387 @@
+\documentclass[10pt,a4paper,twoside]{article}
+
+%%% Load some LaTeX packages:
+\usepackage{amsmath}                       % for mathematical features 
+\usepackage[left=2.5cm,top=3cm,bottom=3cm,right=2.5cm]{geometry}   % text margins
+\usepackage{booktabs}                      % for booktabs in print(xtable)).
+\usepackage{authblk}                       % for footnote style author/affiliation
+\usepackage{amssymb}
+\usepackage{amsthm}
+% LaTeX package for captions customization:
+\usepackage[margin=10pt,font=small,labelfont=bf,format=hang]{caption}
+\usepackage{hyperref}                      % Hyperlinks and \url{}
+\hypersetup{
+    colorlinks=true, % Enable colored text for links instead of drawing boxes
+    linkcolor=blue,  % Color for internal document links (e.g., sections, equations, figures, tables)
+    citecolor=blue,  % Color for bibliographic citation links (e.g., \cite{})
+    urlcolor=blue    % Color for external web URLs (e.g., \url{})
+}
+
+% Import the natbib package and sets a bibliography  and citation styles
+% https://www.overleaf.com/learn/latex/Natbib_citation_styles
+\usepackage[super,square,comma,sort&compress,numbers]{natbib}
+\bibliographystyle{unsrtnat}
+\usepackage[nottoc]{tocbibind} % For bibliography in the table of contents but no "Chapter" or "Section" label inside
+
+
+%%%%%%%%%%%%
+%%%%
+%%%% BEGIN scientific and R commands
+%%%%
+%%%%%%%%%%%%
+
+% Operadores y Funciones
+\DeclareMathOperator{\var}{var}             % variance
+\DeclareMathOperator{\logit}{logit}         % logit function
+\newcommand{\logodds}{\text{logodds}}       % logodds
+\newcommand{\E}{\mathbb{E}}                 % expectation
+\newcommand{\equaldef}{\stackrel{\text{def}}{=}}  % equal by definition
+
+
+% Distribuciones de probabilidad
+\DeclareMathOperator{\Bern}{Bern}           % Bernoulli
+\DeclareMathOperator{\Bin}{Bin}             % Binomial
+\DeclareMathOperator{\Pois}{Pois}           % Poisson
+\DeclareMathOperator{\LogN}{LogN}           % lognormal
+\DeclareMathOperator{\NB}{NB}               % Negative Binimial
+\newcommand{\Normal}{\mathcal{N}}           % normal (distribution)
+
+
+%%% Epidemiologic notation:
+% text version (within equation):
+\newcommand{\CI}{\text{CI}}                 % cumulative incidence
+\newcommand{\RD}{\text{RD}}                 % risk difference
+\newcommand{\RR}{\text{RR}}                 % risk ratio
+\newcommand{\OR}{\text{OR}}                 % odds ratio
+\newcommand{\PR}{\text{PR}}                 % prevalence ratio
+\newcommand{\PD}{\text{PD}}                 % prevalence difference
+\newcommand{\IRR}{\text{IRR}}               % incidence rate ratio
+\newcommand{\IRD}{\text{IRD}}               % incidence rate difference
+\newcommand{\odds}{\text{odds}}             % odds
+\newcommand{\PAR}{\text{PAR}}               % population attributable risk
+\newcommand{\EAR}{\text{EAR}}               % exposure attributable risk
+\newcommand{\MR}{\text{MR}}                 % mortality rate
+\newcommand{\MRR}{\text{MRR}}               % mortality rate ratio
+\newcommand{\DSMR}{\text{MR}_{\text{DS}}}   % directly standardized mortality rate
+\newcommand{\ISMR}{\text{MR}_{\text{IS}}}   % indirectly standardized mortality rate
+\newcommand{\CMF}{\text{CMF}}               % Comparative mortality figure
+\newcommand{\SMR}{\text{SMR}}               % Standardized mortality ratio
+\newcommand{\AMR}{\text{AMR}}               % Adjusted Mortality Rate 
+
+
+%%% R notation:
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Rclass}[1]{\textit{#1}}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rfun}[1]{\texttt{#1\hspace{-0.15em}()}}
+\newcommand{\Rmethod}[1]{\texttt{#1}}
+\newcommand{\Rarg}[1]{\texttt{#1}}
+\newcommand{\Rcode}[1]{\texttt{#1}}
+
+%%%%%%%%%%%%
+%%%%
+%%%% END scientific and R commands
+%%%%
+%%%%%%%%%%%%
+
+
+
+
+<<libraries, include=FALSE>>=
+### libraries related to knit:
+library(knitr)
+library(xtable)     # to create nice LaTeX tables
+@
+
+
+<<setting, include=FALSE, purl=FALSE>>=
+### output options (there are a lot..):
+options(width = 90, # max. width, in characters, of the R output. Default is 80.
+        scipen = 4)  # to avoid printing inline R output numbers in scientific
+# notation if they are lower than 10^4
+
+
+### set global chunk options. They apply to all chuncks except to those in which
+### you set otherwise
+opts_chunk$set(echo = FALSE,         # don't show R input code
+               message = TRUE,       # set to FALSE to avoid nuisance messages (be careful!)         
+               warning = TRUE,       # set to FALSE to avoid nuisance messages (be careful!)         
+               size = "footnotesize", # set the R output and output font size 
+               cache = FALSE,        # useful for computationally costly chunks (be careful if set to TRUE!)
+               prompt = TRUE)
+@
+
+
+\begin{document}
+
+% Activate lowercase Roman numerals for the preliminary pages
+\pagenumbering{roman}
+
+
+% Title page
+\title{Integrating \R\ and \LaTeX\ in a single source document with the \Rpackage{knitr} package: An example of reporting reproducible research\vspace{1mm} \normalsize{\color{blue}(version 4.4)}}
+\author[1,2]{Jose Barrera}
+\affil[1]{\small ISGlobal Barcelona Institute for Global Health - Campus Mar}
+\affil[2]{\small Departament de Matem\`atiques, Universitat Aut\`onoma de Barcelona}
+
+\maketitle
+\thispagestyle{empty} % (page i internally but hidden)
+
+
+% Pagina 2 (ii): Blank page after the title pager
+\clearpage
+\thispagestyle{empty}
+\null
+\clearpage
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Abstract page -> Page 3 (iii)
+%%%
+%%%%%%%%%%%%%%%
+\begin{abstract}
+Here you can put your abstract...
+\end{abstract}
+
+
+% Pagina 4 (iv): Blank page after the abstract
+\clearpage
+\thispagestyle{empty}
+\null
+\clearpage
+
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Table of contents -> Page 5 (v)
+%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+
+
+% Pagina 6 (vi): Blank page after the table of contents
+% Leave or remove this page blank so that the first page
+% of the first section is located on an odd-numbered page
+% in the PDF resulting from compiling the Rnw
+\clearpage
+\thispagestyle{empty}
+\null
+\clearpage
+
+
+% Change to Arabic numeral numbering (starts at 1) for Section 1
+\pagenumbering{arabic}
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Section: Introduction
+%%%
+%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+This report is an example of reproducible research using the function \Rfun{knit}, in the \R\ package \Rpackage{knitr}, and \LaTeX. For an introduction to \Rpackage{knitr}, I recommend the website of the package\cite{knitr}.
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Subsection: 
+%%%
+%%%%%%%%%%%%%%%
+\subsection{Toy example}
+\label{sec:toy}
+The aim of this document is to provide a minimal example of a \Robject{Rnw} source file that integrates code of both \R\ and \LaTeX, which result is this PDF file. The statistical analysis shown in this document, a linear regression fitting, is only for illustration purposes on how \Robject{knitr} works  and should not be considered for statistical purposes. In Section \ref{sec:data} we explore data graphically. Then, in Section \ref{sec:modeling}, we fit and interpret a linear regression model. The \R\ code used is shown in Appendix \ref{app:Rcode}. Appendix \ref{app:libraries} shows the \R\ packages we need to get the PDF for this document.
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Section: Data
+%%%
+%%%%%%%%%%%%%%%
+\section{Data}
+\label{sec:data}
+Figure \ref{fig:dataplot}\footnote{See Appendix \ref{app:data}.} shows a graphical representation of the relationship between the wind speed and ozone levels, where we can see a possible linear association:
+
+\begin{equation}
+\label{eq:model}
+\text{Ozone} = \beta_0 + \beta_1 \text{Wind speed}
+\end{equation}
+
+
+<<dataplot, fig.pos='ht', fig.align='center', fig.width=8, fig.height=8, out.width='0.45\\textwidth', fig.cap='\\label{fig:dataplot}Scatter plot of ozone levels vs. wind speed.'>>=
+
+### scatter plot ozone vs. wind:
+par(las = 1, cex.lab = 1.3, cex.axis = 1.3)
+plot(airquality$Wind,
+     airquality$Ozone,
+     xlab = "Wind speed (mph)",
+     ylab = "Ozone levels (ppb)",
+     pch = 19,
+     col = "gray")
+@
+
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Section: Modeling
+%%%
+%%%%%%%%%%%%%%%
+\section{Modeling}
+\label{sec:modeling}
+
+
+<<modeling>>=
+### linear regression model fitting:
+mod <- lm(Ozone ~ Wind, data = airquality)
+### get coefficients table:
+coefs <- summary(mod)$coefficients
+### get beta of interest:
+beta <- coefs["Wind", "Estimate"]
+@
+
+
+<<betaformat>>=
+### output formatting: store some stuff related to the beta of interest, to be
+### used with \Sexpr{} in the report:
+# first, we store the absolute value of beta:
+betaabs <- abs(beta)
+# now, we format it to be printed with 2 decimal places using sprintf:
+betafancy <- sprintf("%.2f", betaabs)
+# now we want to use "increase" or "decrease" in the report depending on if
+# beta is positive or negative, respectively. We store it in the object "eff"
+# (for "effect"):
+eff <- ifelse(beta > 0, "increase", "decrease")
+@
+
+In Section \ref{sec:data} we have seen that a there is a possible linear relationship between the wind speed and the ozone levels, under model \eqref{eq:model}. Thus, we can try to fit a linear regression model\footnote{See \R\ code in Appendix \ref{app:model}.}. Specifically, Table \ref{tab:coeftable} shows the estimated coefficients of the linear model\footnote{The vignette ``The \Rpackage{xtable}\ Gallery''\cite{xtablegallery} provides a lot of examples for table customization.}. Under this model, a one unit increase in the wind speed is associated to a \Sexpr{eff} of \Sexpr{betafancy} units in the mean of ozone levels. Figure \ref{fig:modelplot} shows the data as well as the fitted model.
+
+<<mytable, results = 'asis'>>=
+# exporting coefficients table to LaTeX format:
+modtable <- xtable(coefs,
+                   digits = c(0, 2, 2, 2, 4),
+                   caption = "Linear regression model coefficients for wind and ozone association.",
+                   label = "tab:coeftable")
+# cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
+colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf Estimate}",
+                        "\\multicolumn{1}{c}{\\bf Std.~Error}",
+                        "\\multicolumn{1}{c}{\\(\\boldsymbol{t}\\)\\bf{-value}}",
+                        "\\multicolumn{1}{c}{\\(\\boldsymbol{p}\\)\\bf{-value}}")
+
+# format and print the table:
+print(modtable,
+      table.placement = "ht",
+      size = "footnotesize",
+      include.rownames = TRUE,
+      include.colnames = TRUE,
+      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
+      sanitize.text.function = force,  # important to treat content of columns as latex function
+      booktabs = TRUE)                 # requires \usepackage{booktabs} in the preamble of the document
+@
+
+
+<<modelplot, fig.pos='ht', fig.align='center', fig.width=8, fig.height=8, out.width='0.45\\textwidth', fig.cap=paste0("\\label{fig:modelplot}Scatter plot of ozone levels vs. wind speed and the fitted linear regression model for the mean of ozone levels as a function of wind speed. In the fitted model, \\(\\hat{\\beta}_0 = ", sprintf("%.2f", coef(mod)[1]), "\\) ppb and \\(\\hat{\\beta}_1 = ", sprintf("%.2f", coef(mod)[2]), "\\) ppb/mph.")>>=
+# scatter plot ozone vs. wind again (recycling code in chunk dataplot):
+
+# we increase the font sizes to compensate the reduction that dev='tikz'
+# introduces: 
+par(cex = 1.4)
+
+# reuse the previous chunk named "dataplot":
+<<dataplot>>
+
+# add the fitted model line:
+abline(mod, col = "blue", lwd = 2)
+
+# add legend:
+legend("topright",
+       legend = c("Data", "Fitted model"),
+       col = c("gray", "blue"),
+       lwd = c(0, 2),   # line width 
+       pch = c(19, NA), # point symbol
+       bty = "n",       # no box around the legend
+       cex = 1.1)       # font size (multiplier)
+@
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Section: Extracting
+%%%
+%%%%%%%%%%%%%%%
+\section{Extracting \R\ code}
+\label{sec:r}
+You can extract the \R\ code included in the \Robject{Rnw} source document to a \R\ file by using the \Rfun{purl} function in the \Rpackage{knitr} package:
+
+<<r, echo=TRUE, eval=FALSE>>=
+library(knitr)
+purl("knitr_example.Rnw")
+@
+
+Read \Rcode{?purl} to see how the \R\ code extraction can be customized (e.g., which chunks must be extracted, split \R\ files, file name or file documentation)
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% References
+%%%
+%%%%%%%%%%%%%%%
+\clearpage
+\phantomsection %anchor
+\bibliography{my_bibliography}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%
+%%%
+%%% Appendix
+%%%
+%%%%%%%%%%%%%%%
+\clearpage
+
+
+\appendix
+\section{R code}
+\label{app:Rcode}
+
+
+
+\subsection{Libraries related to \Rpackage{knitr}}
+\label{app:libraries}
+<<echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<libraries>>
+@
+  
+  
+\subsection{Plotting data}
+\label{app:data}
+<<echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<dataplot>>
+@
+  
+\subsection{Fitting the linear regression model}
+\label{app:model}
+<<echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<modeling>>
+@
+  
+  
+\subsection{Plotting the fitted model}
+\label{app:plotmodel}
+<<echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<modelplot>>
+@
+  
+  
+\subsection{Exporting the table to \LaTeX}
+\label{app:table}
+<<echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<mytable>>
+@
+  
+\end{document}
+

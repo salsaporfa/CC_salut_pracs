@@ -1,0 +1,22 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+
+\title{My title}
+\author{My name}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+Hello.
+
+<<>>=
+x <- 2
+y <- 2 * x
+y
+@
+
+Bye.
+
+\end{document}

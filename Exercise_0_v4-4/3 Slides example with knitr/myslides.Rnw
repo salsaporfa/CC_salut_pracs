@@ -1,0 +1,675 @@
+\documentclass[9pt,aspectratio=169]{beamer}
+\usepackage[dvipsnames]{xcolor}
+
+
+\mode<presentation>
+{
+\usetheme{Boadilla} % a lot of available themes
+%\setbeamercovered{transparent}
+\setbeamercovered{invisible}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% BEGIN set template colors
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\setbeamercolor*{structure}{bg=PineGreen!20,fg=PineGreen}
+\setbeamercolor*{structure}{bg=PineGreen!20,fg=PineGreen}
+\setbeamercolor*{palette primary}{use=structure,fg=white,bg=structure.fg!70}
+\setbeamercolor*{palette secondary}{use=structure,bg=structure.fg!20}
+\setbeamercolor*{palette tertiary}{use=structure,fg=white,bg=structure.fg}
+\setbeamercolor*{palette quaternary}{fg=white,bg=black}
+\setbeamerfont{section in toc}{size=\small}
+\setbeamercolor{section in toc}{fg=bg=structure.fg,bg=white}
+\setbeamerfont{subsection in toc}{size=\footnotesize}
+\setbeamercolor{subsection in toc}{fg=bg=structure.fg,bg=white}
+\useinnertheme{circles}
+\beamertemplatenavigationsymbolsempty
+%\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{caption}[numbered]
+%\setbeamercolor{upperboxcolor}{fg=white,bg=blue!50!black}
+\setbeamercolor{upperboxcolor}{fg=white,bg=structure.fg}
+%\setbeamercolor{lowerboxcolor}{fg=black,bg=blue!10!white}
+\setbeamercolor{lowerboxcolor}{fg=black,bg=structure.fg!8!white}
+%\setbeamercolor{title}{fg=blue!30!black, bg=blue!20!white}
+\setbeamercolor{title}{fg=structure.fg!5!white, bg=structure.fg}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=structure.fg, % Enlaces internos (secciones, figuras, tablas) en verde
+    urlcolor=structure.fg,  % Direcciones web en verde
+    citecolor=blue          % Citas bibliográficas [1] en azul
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% END set template colors
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+%\usepackage[spanish]{babel}
+%\usepackage[catalan]{babel}
+%\usepackage[applemac]{inputenc}
+\usepackage{amssymb}
+%\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+
+\usepackage[super,square,comma,sort&compress,numbers]{natbib}
+%\usepackage[authoryear,round,comma]{natbib}
+\bibliographystyle{unsrtnat}
+
+
+\usepackage{diagbox} %  instead the obsolete \usepackage{slashbox}
+\usepackage{pifont}
+\usepackage{dcolumn}
+%\usepackage{caption}
+%\setlength{\captionmargin}{20pt}
+\newcolumntype{d}[1]{D{.}{,}{#1}}
+\usepackage{booktabs}
+%\usepackage{bbding}
+%\usepackage{wasysym} % \mars \venus
+\usepackage{ragged2e} % \justifying
+%\usepackage[ddmmyyyy]{datetime}
+%\usepackage[short]{datetime}
+\usepackage[nodayofweek]{datetime}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%  BEGIN reduce item, itemize indent
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\settowidth{\leftmargini}{\usebeamertemplate{itemize item}}
+%\addtolength{\leftmargini}{\labelsep}
+\setlength{\leftmargini}{3mm}
+\setlength{\leftmarginii}{3mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%  END  reduce item, itemize indent
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% BEGIN scientific and R commands
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Operadores y Funciones
+\DeclareMathOperator{\var}{var}             % variance
+\DeclareMathOperator{\logit}{logit}         % logit function
+\newcommand{\logodds}{\text{logodds}}       % logodds
+\newcommand{\E}{\mathbb{E}}                 % expectation
+\newcommand{\equaldef}{\stackrel{\text{def}}{=}}  % equal by definition
+
+
+% Distribuciones de probabilidad
+\DeclareMathOperator{\Bern}{Bern}           % Bernoulli
+\DeclareMathOperator{\Bin}{Bin}             % Binomial
+\DeclareMathOperator{\Pois}{Pois}           % Poisson
+\DeclareMathOperator{\LogN}{LogN}           % lognormal
+\DeclareMathOperator{\NB}{NB}               % Negative Binimial
+\newcommand{\Normal}{\mathcal{N}}           % normal (distribution)
+
+
+%%% Epidemiologic notation:
+% text version (within equation):
+\newcommand{\CI}{\text{CI}}                 % cumulative incidence
+\newcommand{\RD}{\text{RD}}                 % risk difference
+\newcommand{\RR}{\text{RR}}                 % risk ratio
+\newcommand{\OR}{\text{OR}}                 % odds ratio
+\newcommand{\PR}{\text{PR}}                 % prevalence ratio
+\newcommand{\PD}{\text{PD}}                 % prevalence difference
+\newcommand{\IRR}{\text{IRR}}               % incidence rate ratio
+\newcommand{\IRD}{\text{IRD}}               % incidence rate difference
+\newcommand{\odds}{\text{odds}}             % odds
+\newcommand{\PAR}{\text{PAR}}               % population attributable risk
+\newcommand{\EAR}{\text{EAR}}               % exposure attributable risk
+\newcommand{\MR}{\text{MR}}                 % mortality rate
+\newcommand{\MRR}{\text{MRR}}               % mortality rate ratio
+\newcommand{\DSMR}{\text{MR}_{\text{DS}}}   % directly standardized mortality rate
+\newcommand{\ISMR}{\text{MR}_{\text{IS}}}   % indirectly standardized mortality rate
+\newcommand{\CMF}{\text{CMF}}               % Comparative mortality figure
+\newcommand{\SMR}{\text{SMR}}               % Standardized mortality ratio
+\newcommand{\AMR}{\text{AMR}}               % Adjusted Mortality Rate 
+
+
+%%% R notation:
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Rclass}[1]{\textit{#1}}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rfun}[1]{\texttt{#1\hspace{-0.15em}()}}
+\newcommand{\Rmethod}[1]{\texttt{#1}}
+\newcommand{\Rarg}[1]{\texttt{#1}}
+\newcommand{\Rcode}[1]{\texttt{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% END  scientific and R commands
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% BEGIN script for enumerate along several slides
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeatletter
+\newenvironment{cenumerate}{%
+  \enumerate
+  \setcounter{\@enumctr}{\csname saved@\@enumctr\endcsname}%
+}{%
+  \expandafter\xdef\csname saved@\@enumctr\endcsname{\the\value{\@enumctr}}%
+  \endenumerate
+}
+\newenvironment{cenumerate*}{%
+  \enumerate
+}{%
+  \expandafter\xdef\csname saved@\@enumctr\endcsname{\the\value{\@enumctr}}%
+  \endenumerate
+}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% END  script for enumerate along several slides
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% BEGIN caja de texto personalizada
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Definicion del entorno personalizado:
+% \begin{mybeamerbox}[ancho]{título} ... \end{mybeamerbox}
+\newenvironment{mybeamerbox}[2][0.85]{%
+  \begin{center}%
+  \begin{minipage}{#1\paperwidth}%
+  \begin{beamerboxesrounded}[upper=upperboxcolor,lower=lowerboxcolor,shadow=true,width=\textwidth]{#2}%
+}{%
+  \end{beamerboxesrounded}%
+  \end{minipage}%
+  \end{center}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% END caja de texto personalizada
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+<<include=FALSE, purl=FALSE>>=
+library(knitr)
+library(xtable)
+options(width = 150,
+        scipen = 4)
+opts_chunk$set(message = FALSE,
+               warning = FALSE,
+               size = "footnotesize",
+               prompt = TRUE)
+@
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% BEGIN title slide
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title[Beamer + knitr example, 2026/2027]{
+  BSc Degree in Applied Statistics\\
+  \textbf{Reproducible slides with \LaTeX\ and \Rpackage{knitr}}\\
+  \textbf{A tiny template}
+}
+
+\author[Jose Barrera]{
+Jose Barrera\inst{a}\inst{b}\\
+\href{mailto:jose.barrera@uab.cat}{jose.barrera@uab.cat}\\
+\url{https://jobago.github.io}
+}
+
+
+\institute[ISGlobal \& UAB]{
+\inst{a}ISGlobal Barcelona Institute for Global Health - Campus MAR
+\and
+\inst{b}Department of Mathematics (UAB)
+}
+
+%\date{21 de setembre de 2010}
+%\date[1\textsuperscript{st} October, 2021]{1\textsuperscript{st} October, 2021}
+\date{}
+
+
+\begin{document}
+
+
+%------------------ Titol------------------------
+\begin{frame}[plain]
+\titlepage
+\vspace{-1cm}
+\begin{center}
+\includegraphics[width=0.35\textwidth ]{pictures/logotipuab-3-linies-horitz-verd.png}
+\end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% END title slide
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Contents
+%--------------------------------------
+%--------------------------------------
+\begin{frame}
+\frametitle{Contents}
+
+\tableofcontents
+
+\end{frame}
+
+
+
+
+% you can put R chunks outside slides and show results later inside a slide:
+
+<<countsexampledata, echo = FALSE, purl=FALSE>>=
+E0D0 <- 192
+E0D1 <- 48
+E1D0 <- 84
+E1D1 <- 36
+
+E0 <- E0D0 + E0D1
+E1 <- E1D0 + E1D1
+D0 <- E0D0 + E1D0
+D1 <- E0D1 + E1D1
+n <- E0 + E1
+rr <- (E1D1 / E1) / (E0D1 / E0)
+or <- (E0D0 * E1D1) / (E0D1 * E1D0)
+@
+
+
+
+%--------------------------------------
+%--------------------------------------
+%-- One section
+%--------------------------------------
+%--------------------------------------
+\section{One section}
+
+%--------------------------------------
+%--------------------------------------
+%-- One subsection
+%--------------------------------------
+%--------------------------------------
+\subsection{One subsection}
+
+
+
+%--------------------------------------
+%--------------------------------------
+%-- A table
+%--------------------------------------
+%--------------------------------------
+\begin{frame}
+\frametitle{A table}
+
+\begin{mybeamerbox}[0.9]{Box title here}
+
+\begin{itemize}
+\justifying
+\item A \(2 \times 2\) contingency table:
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{ld{3.0}d{3.0}cd{3.0}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Disease}}
+& \multicolumn{2}{c}{}\\
+\cmidrule(rl){2-3}
+\textbf{Exposed}
+& \multicolumn{1}{c}{No} 
+& \multicolumn{1}{c}{Yes} 
+&
+& 
+\multicolumn{1}{c}{\bf Total} \\
+\midrule
+No                & \Sexpr{E0D0} &  \Sexpr{E0D1} & & \Sexpr{E0}\\
+Yes               & \Sexpr{E1D0} &  \Sexpr{E1D1} & & \Sexpr{E1}\\
+\midrule
+\textbf{Total} & \Sexpr{D0}      &     \Sexpr{D1} &  &  \Sexpr{n}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\item Bye.
+
+\end{itemize}
+
+\end{mybeamerbox}
+
+
+\end{frame}
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Another table (with \Robject{xtable})
+%--------------------------------------
+%--------------------------------------
+\begin{frame}
+\frametitle{Another table (with \Robject{xtable})}
+
+
+\begin{mybeamerbox}[0.7]{Linear regression}
+
+Table \ref{tab:coeftable} shows my results.
+
+<<mytable, echo=FALSE, results = 'asis'>>=
+### linear regression model fitting:
+mod <- lm(Ozone ~ Wind, data = airquality)
+### get coefficients table:
+coefs <- summary(mod)$coefficients
+# exporting coefficients table to LaTeX format:
+modtable <- xtable(coefs,
+                   digits = c(0, 2, 2, 2, 4),
+                   caption = "Linear regression model coefficients for wind and ozone association.",
+                   label = "tab:coeftable")
+# cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
+colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf{\\color{blue}Estimate}}",
+                        "\\multicolumn{1}{c}{\\bf Std.~Error}",
+                        "\\multicolumn{1}{c}{\\(\\boldsymbol{t}\\)\\bf{-value}}",
+                        "\\multicolumn{1}{c}{\\(\\boldsymbol{p}\\)\\bf{-value}}")
+
+# format and print the table:
+print(modtable,
+      size = "footnotesize",
+      include.rownames = TRUE,
+      include.colnames = TRUE,
+      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
+      sanitize.text.function = force,  # important to treat content of columns as latex function
+      booktabs = TRUE)                 # requires \usepackage{booktabs} in the preamble of the document
+@
+
+
+
+\end{mybeamerbox}
+
+
+\end{frame}
+
+
+%--------------------------------------
+%--------------------------------------
+%-- A plot in a box
+%--------------------------------------
+%--------------------------------------
+\begin{frame}[fragile]
+\frametitle{A plot in a box}
+
+\begin{mybeamerbox}[0.6]{A plot}
+
+I like Figure \ref{fig:dataplot}.
+
+
+<<dataplot, echo=FALSE, fig.pos='ht', fig.align='center', fig.width=8, fig.height=6, out.width='0.7\\textwidth', fig.cap='\\label{fig:dataplot}Scatter plot of ozone levels vs. wind speed.'>>=
+
+### scatter plot ozone vs. wind:
+par(las = 1, cex.lab = 1.3, cex.axis = 1.3)
+plot(airquality$Wind,
+     airquality$Ozone,
+     xlab = "Wind speed (mph)",
+     ylab = "Ozone levels (ppb)",
+     pch = 19,
+     col = "red")
+@
+
+\end{mybeamerbox}
+
+
+\end{frame}
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Boxes in rows and columns
+%--------------------------------------
+%--------------------------------------
+\begin{frame}[fragile]
+\frametitle{Boxes in rows and columns}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{columns}[T]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\column{.32\paperwidth}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{mybeamerbox}[0.32]{Box 1}
+\justifying
+Text in box 1.
+
+\end{mybeamerbox}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\column{.42\paperwidth}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{mybeamerbox}[0.42]{Box 2}
+
+\justifying
+Text in box 2.
+
+<<echo=TRUE>>=
+x <- 2
+x + 1
+@
+\end{mybeamerbox}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{columns}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{mybeamerbox}[0.5]{Box 3}
+\justifying
+An equation.
+
+\[
+z = x + y.
+\]
+
+\end{mybeamerbox}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{mybeamerbox}[0.92]{Box 4}
+\justifying
+An equation with label for reference.
+
+\begin{equation}
+\label{eq:gravity}
+y = \frac{1}{2}g t^2.
+\end{equation}
+
+Equation \eqref{eq:gravity} represents the free-fall distance (\(y\)) under constant gravity (\(g\)) over time (\(t\)), starting from rest.
+
+\end{mybeamerbox}
+
+
+\end{frame}
+
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Plot in a box
+%--------------------------------------
+%--------------------------------------
+\begin{frame}[fragile]
+\frametitle{Plot in a box}
+
+\begin{mybeamerbox}[0.85]{Box \(a\)}
+
+\justifying
+Hello.
+
+\end{mybeamerbox}
+
+
+
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+\begin{columns}%[T]
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+\column{.3\paperwidth}
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+\begin{mybeamerbox}[0.3]{Box \(b\)}
+
+Different ways to cite:
+
+\begin{itemize}
+
+\item See work by \citet{Barreratlm}.
+\item This is another citation.\cite{Barreratlm}
+
+\end{itemize}
+
+\end{mybeamerbox}
+
+
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+\column{.5\paperwidth}
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+Possible outer title for figure \ref{fig:plot2} here
+\end{center}
+
+
+\vspace{-4mm}
+
+<<plot2, echo=FALSE, fig.pos='ht', fig.align='center', fig.width=8, fig.height=6, out.width='0.8\\textwidth', fig.cap='\\label{fig:plot2}Different points.'>>=
+par(las = 1,
+    cex.lab = 1.3,
+    cex.axis = 1.3)
+plot(1: 20, 1:20, pch = 1:20, cex = 2, col = "forestgreen")
+@
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+\end{columns} 
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+\end{frame}
+
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Bibliography
+%--------------------------------------
+%--------------------------------------
+\section*{References}
+\begin{frame}
+\frametitle{References}
+\small
+\justifying
+\bibliography{my_bibliography/biblio}{}
+\end{frame}
+
+
+%--------------------------------------
+%--------------------------------------
+%-- Thanks
+%--------------------------------------
+%--------------------------------------
+\begin{frame}
+
+\vspace{6mm}
+
+\begin{center}
+
+\begin{tabular}{c}
+{\fontsize{40}{48}\selectfont\bf
+{\color{teal}T}{\color{cyan}h}{\color{teal}a}{\color{cyan}n}{\color{teal}k}
+}
+\\
+{\fontsize{40}{48}\selectfont\bf
+{\color{cyan}y}{\color{teal}o}{\color{cyan}u}{\color{teal}!}
+}
+\end{tabular}
+
+\end{center}
+
+\end{frame}
+
+
+\end{document}
