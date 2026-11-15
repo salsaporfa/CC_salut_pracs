@@ -1,0 +1,39 @@
+library(mice)
+library(miclust)
+
+?getdata #Observem les funcions de getdata()
+?miclust #Observem les funcions de miclust()
+
+# Comprovem que totes les variables siguin numèriques ja que getdata només accepta llista o data.frames amb variables només numèriques
+class(copd) 
+str(copd)
+
+# complete() agafa objectes de classe "mids" i afegeix les missing data i retorna una llista de data.frames, si fem include=TRUE afegim també el rawdata. Per tant comprovem que l'imp que vam fer l'apartat anterior sigui de la mateixa classe.
+class(imp)
+bd <- complete(imp, action="all", include=TRUE)
+
+# Revisar els nivells de la variable de sis categories
+levels(bd[[1]]$graudisn_v1)
+
+# Preparar totes les bases de dades
+bd_preparada <- lapply(bd, function(df) {
+
+  # Eliminar l'identificador
+  df$id <- NULL
+
+  # Identificar les variables categòriques
+  factors <- names(df)[sapply(df, is.factor)]
+
+  # Convertir els nivells numèrics guardats com a factors
+  df[factors] <- lapply(df[factors], function(x) {
+    as.numeric(as.character(x))
+  })
+
+  df
+})
+
+dades <- getdata(bd_preparada)
+
+class(dades)
+
+miclust(dades)

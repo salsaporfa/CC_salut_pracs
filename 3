@@ -1,0 +1,38 @@
+x<- miclust(dades, search = "backward")
+
+plot(x, k= NULL, metric = "all", col.nclfreq = "gray",
+     col.critcf = "gray",
+     col.nvarfreq = "gray",
+     col.varsel = "black",)
+#CritCF es sistemáticamente mayor para k=2, así que también apoya elegir 2 clusters.
+# Higher values for CritCF are preferred. This criterion can rank partitions based on different numbers of clusters and different numbers of variables
+
+
+'''
+With this property, one can design a search strategy to find both the optimal 
+number of clusters and the final variables that need to be included in the 
+analysis. As before, this search strategy will not be exhaustive,
+and achievement of the global optimum is not guaranteed.
+One possible search strategy is a backward sequential selection algorithm, 
+which would work as follows (17). For the number of clusters k = 2, …, kmax,
+where the maximum number of clusters is fixed a priori, the algorithm starts 
+with a set of selected variables containing all variables and an empty set of 
+removed variables. The k-means algorithm is run excluding one of the variables
+in the selected set at a time. The variable that, when excluded, provides a higher
+value of CritCF is removed from the set of selected variables and added to the set 
+of removed variables. The process keeps iterating until none of the selected
+variables brings any improvement in CritCF when excluded.
+The combination of k and the set of variables that gives a higher CritCF is chosen
+as the final model.
+
+'''
+
+#percfreq: porcentajes de selección, ya ordenados de mayor a menor.
+#varnames: nombres de esas variables, en el mismo orden.
+
+frequency <- getvariablesfrequency(x)
+
+barplot(
+  frequency$percfreq,
+  names.arg = frequency$varnames
+)
