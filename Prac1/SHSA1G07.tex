@@ -50,6 +50,7 @@
 
 \usepackage{alltt}
 \linespread{1.1}
+\raggedbottom
 %paquetes
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
@@ -105,7 +106,7 @@
 
 \section{Introduction}
 
-The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper.
+The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper\citep{basagana2013}.
 
 \section{Analysis}
 \subsection{Description of missingness}
@@ -210,7 +211,8 @@ Before staring to decide the arguments for \texttt{method} and \texttt{predictor
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-As we see, most of the variables are numerical, however there are some variables which are factors. Their names and corresponding numbers of levels are listed below:
+
+As we see, most of the variables are numerical, however there are some variables are factors. Their names and corresponding numbers of levels are listed below:
 \begin{knitrout}\footnotesize
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -220,12 +222,285 @@ As we see, most of the variables are numerical, however there are some variables
 \hldef{> }\hldef{binarias} \hlkwb{<-} \hlkwd{names}\hldef{(niveles[niveles} \hlopt{==} \hlnum{2}\hldef{])}
 \hldef{> }\hldef{binarias_latex} \hlkwb{<-} \hlkwd{gsub}\hldef{(}\hlsng{"_"}\hldef{,} \hlsng{"\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}_"}\hldef{, binarias)}
 \hldef{> }\hldef{no_binarias} \hlkwb{<-} \hlkwd{names}\hldef{(niveles[niveles} \hlopt{>} \hlnum{2}\hldef{])}
+\hldef{> }\hldef{no_binarias_latex} \hlkwb{<-} \hlkwd{gsub}\hldef{(}\hlsng{"_"}\hldef{,} \hlsng{"\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}_"}\hldef{, no_binarias)}
+\hldef{> }\hldef{level_no_binaria} \hlkwb{<-} \hldef{niveles[niveles} \hlopt{>} \hlnum{2}\hldef{]}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-As we can see, this data set has 11 variables that are
-factors, and their names are \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1, graudisn\_v1}. The following factors are binary distributed: \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1}
+This data set has 11 variables that are
+factors, and their names are \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1, graudisn\_v1}. The following factors are binary distributed: \texttt{sin11\_v1, iam\_chv1, sin15\_v1, sin7\_v1, sin8\_v1, cccs1\_v0, vtit\_catv1, urg\_ambv0, sin5\_v1, sin6\_v1} while the variable  \texttt{graudisn\_v1} has 6 variables.
+
+For the binary variables, we use Logistic Regression model (\texttt{logreg}) as our imputation method which are adapted with the default setting of \texttt{mice} package. In the case of the categorical variable with 6 levels (\texttt{graudisn\_v1}) we choose Proportional Odds model \citep{polr} (\texttt{polr}). In the original paper\citep{basagana2013} we could not find any information of this variable as ordinal or nominal, however with the aid of AI we can know it is the measurement of dyspnoea.\citep{graudisnv1} Hence, \texttt{polr} should be the correct method for the imputation. Finally for the rest of the variables, we choose Predictive Mean Matching (the default setting for numeric variables) as the imputation method\\
+
+Also to continue the study we want to which are the variables are completed without any missing. We make a table to get the information:
+\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{missing_info} \hlkwb{<-} \hlkwd{data.frame}\hldef{(}
+\hldef{+ }  \hlkwc{variable} \hldef{=} \hlkwd{names}\hldef{(copd),}
+\hldef{+ }  \hlkwc{missing_n} \hldef{=} \hlkwd{colSums}\hldef{(}\hlkwd{is.na}\hldef{(copd)),}
+\hldef{+ }  \hlkwc{missing_pct} \hldef{=} \hlkwd{round}\hldef{(}\hlkwd{colMeans}\hldef{(}\hlkwd{is.na}\hldef{(copd))} \hlopt{*} \hlnum{100}\hldef{,} \hlnum{2}\hldef{)}
+\hldef{+ }\hldef{)}
+\hldef{> }
+\hldef{> }\hldef{completed_variables} \hlkwb{<-} \hlkwd{names}\hldef{(copd)[}\hlkwd{colSums}\hldef{(}\hlkwd{is.na}\hldef{(copd))} \hlopt{==} \hlnum{0}\hldef{]}
+\hldef{> }\hldef{completed_variables_latex} \hlkwb{<-} \hlkwd{gsub}\hldef{(}\hlsng{"_"}\hldef{,} \hlsng{"\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}_"}\hldef{, completed_variables)}
+\hldef{> }
+\hldef{> }\hldef{xt} \hlkwb{<-} \hlkwd{xtable}\hldef{(}
+\hldef{+ }  \hldef{missing_info,}
+\hldef{+ }  \hlkwc{caption} \hldef{=} \hlsng{"Missing description"}\hldef{,}
+\hldef{+ }  \hlkwc{label} \hldef{=} \hlsng{"tab:missing_description"}\hldef{,}
+\hldef{+ }  \hlkwc{align} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"l"}\hldef{,} \hlsng{"l"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{),}
+\hldef{+ }  \hlkwc{digits} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{2}\hldef{)}
+\hldef{+ }\hldef{)}
+\hldef{> }
+\hldef{> }\hlkwd{print}\hldef{(}
+\hldef{+ }  \hldef{xt,}
+\hldef{+ }  \hlkwc{include.rownames} \hldef{=} \hlnum{FALSE}\hldef{,}
+\hldef{+ }  \hlkwc{include.colnames} \hldef{=} \hlnum{TRUE}\hldef{,}
+\hldef{+ }  \hlkwc{caption.placement} \hldef{=} \hlsng{"top"}\hldef{,}
+\hldef{+ }  \hlkwc{table.placement} \hldef{=} \hlsng{"H"}
+\hldef{+ }\hldef{)}
+\end{alltt}
+\end{kframe}% latex table generated in R 4.5.3 by xtable 1.8-8 package
+% Wed Oct 28 12:56:47 2026
+\begin{table}[H]
+\centering
+\caption{Missing description} 
+\label{tab:missing_description}
+\begin{tabular}{lrr}
+  \hline
+variable & missing\_n & missing\_pct \\ 
+  \hline
+id & 0 & 0.00 \\ 
+  index\_barthel2v1 & 9 & 2.63 \\ 
+  quo\_calcpostv1 & 0 & 0.00 \\ 
+  rv\_prepv1 & 27 & 7.89 \\ 
+  incp\_fevv1 & 14 & 4.09 \\ 
+  fevp\_postv1 & 0 & 0.00 \\ 
+  rv\_tlcv1 & 27 & 7.89 \\ 
+  ctnf\_s\_mv1 & 12 & 3.51 \\ 
+  vtdvdbid\_ecov1 & 108 & 31.58 \\ 
+  pp\_ecov1 & 54 & 15.79 \\ 
+  sin11\_v1 & 4 & 1.17 \\ 
+  vas2\_v1 & 4 & 1.17 \\ 
+  ic\_prepv1 & 19 & 5.56 \\ 
+  iam\_chv1 & 3 & 0.88 \\ 
+  sin15\_v1 & 4 & 1.17 \\ 
+  cil8\_s\_mv1 & 14 & 4.09 \\ 
+  sin7\_v1 & 4 & 1.17 \\ 
+  sin8\_v1 & 4 & 1.17 \\ 
+  ch\_v1 & 18 & 5.26 \\ 
+  vc\_prepv1 & 19 & 5.56 \\ 
+  dtdve\_ecov1 & 49 & 14.33 \\ 
+  cccs1\_v0 & 5 & 1.46 \\ 
+  kcals\_set\_v0 & 1 & 0.29 \\ 
+  impactsv1 & 4 & 1.17 \\ 
+  monoA\_v1 & 7 & 2.05 \\ 
+  lvmass\_ase\_ecov1 & 54 & 15.79 \\ 
+  vtit\_catv1 & 87 & 25.44 \\ 
+  urg\_ambv0 & 0 & 0.00 \\ 
+  po2\_v1 & 11 & 3.22 \\ 
+  ahpf\_v1 & 56 & 16.37 \\ 
+  pro\_v1 & 12 & 3.51 \\ 
+  basA\_v1 & 7 & 2.05 \\ 
+  fc\_pmv1 & 39 & 11.40 \\ 
+  tad\_v1 & 5 & 1.46 \\ 
+  col\_v1 & 10 & 2.92 \\ 
+  sin5\_v1 & 4 & 1.17 \\ 
+  bc\_v1 & 37 & 10.82 \\ 
+  fvcp\_postv1 & 0 & 0.00 \\ 
+  vas1\_v1 & 4 & 1.17 \\ 
+  sin6\_v1 & 4 & 1.17 \\ 
+  graudisn\_v1 & 4 & 1.17 \\ 
+  cpcr\_mg\_l\_mediav1 & 17 & 4.97 \\ 
+  neutA\_v1 & 7 & 2.05 \\ 
+  ahpl\_v1 & 66 & 19.30 \\ 
+  activityv1 & 4 & 1.17 \\ 
+   \hline
+\end{tabular}
+\end{table}
 
 
+As shown in Table~\ref{tab:missing_description}, we can see there are some variables beside of \texttt{id} are completed (\texttt{id, quo\_calcpostv1, fevp\_postv1, urg\_ambv0, fvcp\_postv1}). Hence, we do not want to consider them as imputed values and for the variable \texttt{id} we do not want to consider it neither as imputed nor as a predictor.\\
+
+Now, let's fill the arguments for \texttt{method} and \texttt{predictorMatrix}:
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{ini} \hlkwb{<-} \hlkwd{mice}\hldef{(copd,} \hlkwc{maxit} \hldef{=} \hlnum{0}\hldef{)}
+\hldef{> }\hldef{meth} \hlkwb{<-} \hldef{ini}\hlopt{$}\hldef{method}
+\hldef{> }\hldef{p_Matrix} \hlkwb{<-} \hldef{ini}\hlopt{$}\hldef{predictorMatrix}
+\hldef{> }\hldef{meth[}\hlsng{"id"}\hldef{]} \hlkwb{<-} \hlsng{""}
+\hldef{> }\hldef{meth[no_binarias]} \hlkwb{<-} \hlsng{"polr"}
+\hldef{> }\hlkwa{for} \hldef{(var} \hlkwa{in} \hldef{completed_variables) \{}
+\hldef{+ }  \hldef{p_Matrix[var, ]} \hlkwb{<-} \hlnum{0} \hlcom{#the completed variables are not imputed}
+\hldef{+ }\hldef{\}}
+\hldef{> }\hldef{p_Matrix[,}\hlsng{"id"}\hldef{]} \hlkwb{<-} \hlnum{0} \hlcom{#the variable id is not considered as a predictor}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+And we start to do the imputation with the arguments that we defined before. 
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{imp} \hlkwb{<-} \hlkwd{mice}\hldef{(copd,} \hlkwc{m} \hldef{=} \hlnum{100}\hldef{,}
+\hldef{+ }            \hlkwc{method} \hldef{= meth,} \hlkwc{predictorMatrix} \hldef{= p_Matrix,}
+\hldef{+ }            \hlkwc{seed} \hldef{=} \hlnum{666}\hldef{,}
+\hldef{+ }            \hlkwc{printFlag} \hldef{=} \hlnum{FALSE}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\subsection{Integration of multiple imputation in cluster analysis}
+Reproduce the original analysis in the paper using the miclust package to integrate multiple imputation in the cluster analysis. Apply the proposed framework using the same setting than in the original analysis. To do that, follow these steps:
+\begin{enumerate}
+\item Read the help of the \texttt{getdata()} function in the \texttt{miclust} package. Then, accordingly, create a list of \texttt{data.frames} and pass it to the \texttt{getdata()} function. Give a detailed explanation of the data processing you did to get that list.
+\item Use the \texttt{miclust()} function to perform the integration of missing data in cluster analysis using the same settings as in the original analysis. Show your code and explain how and why you set all arguments in the \texttt{miclust()} function.
+\end{enumerate}
+Firstly, we shall create the list and execute \texttt{getdata()}
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hlcom{#help(getdata)}
+\hldef{> }\hldef{bd} \hlkwb{<-} \hlkwd{complete}\hldef{(imp,} \hlkwc{action}\hldef{=}\hlsng{"all"}\hldef{,} \hlkwc{include}\hldef{=}\hlnum{TRUE}\hldef{)}
+\hldef{> }\hlkwd{levels}\hldef{(bd[[}\hlnum{1}\hldef{]]}\hlopt{$}\hldef{graudisn_v1)} \hlcom{# revising the variable graudisn_v1 having 6 levels}
+\end{alltt}
+\begin{verbatim}
+## [1] "0" "1" "2" "3" "4" "5"
+\end{verbatim}
+\begin{alltt}
+\hldef{> }\hlcom{# bd preparation}
+\hldef{> }\hldef{bd_preparada} \hlkwb{<-} \hlkwd{lapply}\hldef{(bd,} \hlkwa{function}\hldef{(}\hlkwc{df}\hldef{) \{}
+\hldef{+ }  \hlcom{# We do not consider the id}
+\hldef{+ }  \hldef{df}\hlopt{$}\hldef{id} \hlkwb{<-} \hlkwa{NULL}
+\hldef{+ }  \hlcom{# Identifacte the factor variables}
+\hldef{+ }  \hldef{factors} \hlkwb{<-} \hlkwd{names}\hldef{(df)[}\hlkwd{sapply}\hldef{(df, is.factor)]}
+\hldef{+ }  \hlcom{# Consider these numerical levels as factors}
+\hldef{+ }  \hldef{df[factors]} \hlkwb{<-} \hlkwd{lapply}\hldef{(df[factors],} \hlkwa{function}\hldef{(}\hlkwc{x}\hldef{) \{}
+\hldef{+ }    \hlkwd{as.numeric}\hldef{(}\hlkwd{as.character}\hldef{(x))}
+\hldef{+ }  \hldef{\})}
+\hldef{+ }  \hldef{df}
+\hldef{+ }\hldef{\})}
+\hldef{> }\hldef{dades} \hlkwb{<-} \hlkwd{getdata}\hldef{(bd_preparada)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\texttt{getdata()} is a function which creates an object of class \texttt{miData} to later be able working with the function \texttt{miclust}. In this case, we use the \texttt{imp} object, obtained from the previous multiple imputation analysis, belongs to the \texttt{mids} class and contains 100 imputed datasets. Using the \texttt{complete()} function with \texttt{action = "all"} and \texttt{include = TRUE}, we extract all completed datasets together with the original incomplete dataset, resulting in a list of 101 data frames.\\
+Before applying \texttt{getdata()}, we preprocess each dataset to ensure that the variables are in an appropriate format. We remove the \texttt{id} variable because it is only a patient identifier and does not provide meaningful information for cluster analysis. Then, we identify categorical variables stored as factors using \texttt{is.factor()}. We then convert factors with numeric labels into numeric variables using \texttt{as.numeric(as.character(x))}. This conversion preserves the original numerical labels rather than using the internal factor codes. It is appropriate only when the factor levels represent numerical values and their interpretation is compatible further more with the clustering method.\\
+Finally, we apply the \texttt{getdata()} function to the prepared list of data frames to obtain the data structure required for the subsequent clustering analysis using \texttt{miclust()}.\\
+
+Now we shall work with the \texttt{miclust()} function:
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{n} \hlkwb{<-} \hlkwd{nrow}\hldef{(dades}\hlopt{$}\hldef{rawdata)}
+\hldef{> }\hldef{p} \hlkwb{<-} \hlkwd{ncol}\hldef{(dades}\hlopt{$}\hldef{rawdata)}
+\hldef{> }\hldef{n} \hlopt{/} \hldef{p}
+\end{alltt}
+\begin{verbatim}
+## [1] 7.772727
+\end{verbatim}
+\begin{alltt}
+\hldef{> }\hldef{cluster_results} \hlkwb{<-} \hlkwd{miclust}\hldef{(dades,} \hlkwc{search} \hldef{=} \hlsng{"backward"}\hldef{,}\hlkwc{seed} \hldef{=} \hlnum{666}\hldef{)}
+\end{alltt}
+\begin{verbatim}
+## . . . . imp   5 . . . . imp  10 . . . . imp  15 . . . . imp  20 
+## . . . . imp  25 . . . . imp  30 . . . . imp  35 . . . . imp  40 
+## . . . . imp  45 . . . . imp  50 . . . . imp  55 . . . . imp  60 
+## . . . . imp  65 . . . . imp  70 . . . . imp  75 . . . . imp  80 
+## . . . . imp  85 . . . . imp  90 . . . . imp  95 . . . . imp 100 
+## 
+##  Analysis done.
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+We apply the \texttt{miclust()} function to perform cluster analysis across the 100 imputed datasets prepared in the previous step. We use \texttt{search = "backward"} because feature selection.
+
+\section{Results}
+Using \texttt{plot()} and \texttt{summary()} methods in the \texttt{miclust} package, provide plots and tables for the results similar than those shown in the original paper. Also, show a barplot for the percentage of times each variable is selected among the imputed data sets, in decreasing order. Explain how you set all arguments in all functions and methods you use.
+\begin{figure}[H]
+\centering
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hlkwd{plot}\hldef{(cluster_results,}
+\hldef{+ }     \hlkwc{k} \hldef{=} \hlkwa{NULL}\hldef{,}
+\hldef{+ }     \hlkwc{metric} \hldef{=} \hlsng{"critcf"}\hldef{,}
+\hldef{+ }     \hlkwc{col.nclfreq} \hldef{=} \hlsng{"gray"}\hldef{,}
+\hldef{+ }     \hlkwc{col.critcf} \hldef{=} \hlsng{"gray"}\hldef{,}
+\hldef{+ }     \hlkwc{col.nvarfreq} \hldef{=} \hlsng{"gray"}\hldef{,}
+\hldef{+ }     \hlkwc{col.varsel} \hldef{=} \hlsng{"black"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\linewidth]{figure/result1-1} 
+\end{knitrout}
+\caption{Results of the multiple imputation cluster analysis using the miclust package.}
+\label{fig:figura1}
+\end{figure}
+With CritCF, as the figure \ref{fig:figura1} said we choose 2 cluster instead of 3 clusters. Higher values for CritCF are preferred. This criterion can rank partitions based on different numbers of clusters and different numbers of variables.
+\begin{figure}[H]
+\centering
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{frequency} \hlkwb{<-} \hlkwd{getvariablesfrequency}\hldef{(cluster_results)}
+\hldef{> }
+\hldef{> }\hlkwd{barplot}\hldef{(}
+\hldef{+ }  \hldef{frequency}\hlopt{$}\hldef{percfreq,}
+\hldef{+ }  \hlkwc{names.arg} \hldef{= frequency}\hlopt{$}\hldef{varnames}
+\hldef{+ }\hldef{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\linewidth]{figure/result2-1} 
+\end{knitrout}
+\caption{Percentage of selection.}
+\label{fig:figura2}
+\end{figure}
+With this property, one can design a search strategy to find both the optimal number of clusters and the final variables that need to be included in the analysis. As before, this search strategy will not be exhaustive, and achievement of the global optimum is not guaranteed.One possible search strategy is a backward sequential selection algorithm, which would work as follows (17). For the number of clusters k = 2, …, kmax, where the maximum number of clusters is fixed a priori, the algorithm starts  with a set of selected variables containing all variables and an empty set of  removed variables. The k-means algorithm is run excluding one of the variables in the selected set at a time. The variable that, when excluded, provides a higher value of CritCF is removed from the set of selected variables and added to the set  of removed variables. The process keeps iterating until none of the selected variables brings any improvement in CritCF when excluded. The combination of k and the set of variables that gives a higher CritCF is chosen as the final model.
+
+
+\section{Report}
+
+The multiple imputation cluster analysis was performed on 342 with 45 variables participants using 100 imputed datasets. The final solution consisted of two clusters, as supported by Figure~\ref{fig:figura1}. The two-cluster solution achieved consistently higher CritCF values than the three-cluster solution, with a median of approximately 0.553 compared with 0.525. Furthermore, the relatively small variability of CritCF for $k=2$ suggests that the selected number of clusters is reasonably stable across imputations. The final cluster sizes and their uncertainty remain to be reported.
+
+Relabelling the clusters across the imputed datasets is necessary because cluster labels are arbitrary and may differ between imputations. The degree of agreement after relabelling should be evaluated to determine whether the same underlying groups are consistently identified. The corresponding agreement statistics are not yet available in the reported results.
+
+Regarding variable selection, the backward search procedure
+was applied to identify the variables contributing most
+strongly to the clustering structure. As shown in
+Figure~\ref{fig:figura2}, the selected variables included
+\texttt{fevp\_postv1}, \texttt{rv\_prepv1},
+\texttt{vas2\_v1}, \texttt{iam\_chv1},
+\texttt{graudisn\_v1}, and \texttt{cil8\_s\_mv1}.
+Their selection frequencies provide information about
+uncertainty: variables repeatedly selected across imputations
+are more stable, whereas variables with lower frequencies
+are more sensitive to the imputed values. The exact final
+subset and its selection frequencies should be confirmed
+from the clustering summary.
+
+Finally, cluster membership probabilities allow the
+uncertainty associated with participant classification
+to be assessed. Probabilities close to one indicate
+strong evidence of membership in a particular cluster,
+whereas probabilities close to 0.5 suggest ambiguous
+classification in a two-cluster solution. These probabilities
+should be summarized for each cluster, together with their
+variability across imputations.
+
+Overall, the analysis supports a two-cluster structure,
+although the stability of cluster membership and the
+uncertainty in cluster sizes and assignment probabilities
+require further numerical assessment.
+
+
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{basagana2013}
+ X. Basagaña, J. Barrera-Gómez, M. Benet, JM. Antó, and J. Garcia-Aymerich. A Framework for Multiple Imputation in Cluster Analysis. \emph{American Journal of Epidemiology}, 177(7):718–725, 2013.
+\bibitem{polr}
+ AI explanation for \texttt{polr}: \textcolor{blue}{\href{https://share.google/aimode/Muw7CNkaLiOs6THoX}{https://share.google/aimode/Muw7CNkaLiOs6THoX}}
+\bibitem{graudisnv1}
+ AI explanation for \texttt{graudisn\_v1}: \textcolor{blue}{\href{https://share.google/aimode/Muw7CNkaLiOs6THoX}{https://share.google/aimode/Muw7CNkaLiOs6THoX}}
+\end{thebibliography}
 
 \end{document}

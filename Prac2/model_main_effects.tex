@@ -1,0 +1,75 @@
+%%% BEGIN uncomment and move to the preamble
+
+%\usepackage{bbm}              % for \mathbbm
+%\newcommand{\I}{\mathbbm{1}}  % shortcut for indicator function
+
+%%% END uncomment and move to the preamble
+
+
+
+\begin{equation}
+\label{eq:modelmain}
+\left\{
+\begin{array}{l}
+\bullet\ \text{Probability distribution:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+I_{r_{ij}}
+=
+\frac{I_{ij}}{\Delta t_{ij}},
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+I_{ij} \sim  \text{Pois}(\lambda_{ij}),
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Delta t_{ij}\text{ is the follow-up;}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bullet\ \text{Model for the mean:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+\log
+\left(
+\frac{\lambda_{ij}}{\Delta t_{ij}}
+\right)
+=
+L(E_i, A_j) \text{ (the linear predictor)}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+L(E_i, A_j)
+ = 
+\alpha + \beta_i E_i + \gamma_j A_j\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+}
+ = 
+\alpha + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + \beta_1 \I_{i=1} + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + 
+\gamma_1 \I_{j=1} +
+\gamma_2 \I_{j=2} +
+\gamma_3 \I_{j=3} +
+\gamma_4 \I_{j=4},
+\end{array}
+\right.
+\end{equation}
+where
+\begin{equation*}
+\I_{x=a}
+=
+\left\{
+\begin{array}{ll}
+1, & \text{if } x = a \\
+0, & \text{if } x \neq a
+\end{array}
+\right..
+\end{equation*}

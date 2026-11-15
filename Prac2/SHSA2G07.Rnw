@@ -1,0 +1,281 @@
+\documentclass[10pt,a4paper,twoside]{article}
+\linespread{1.1}
+\raggedbottom
+%paquetes
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{hyperref}
+\usepackage[hang,footnotesize,bf]{caption}
+\usepackage{amsmath}
+\usepackage[left=2.5cm,top=3cm,bottom=3cm,right=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=10pt,font=small,labelfont=bf]{caption}
+\usepackage[normalem]{ulem}
+\usepackage{bbold}
+\usepackage{hyperref}
+\usepackage[super]{natbib}
+\usepackage{enumitem}
+\usepackage{float}
+
+
+%new_commands
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+
+% Las librerías que hacen falta por ahora
+
+<<libraries, echo=FALSE, message=FALSE>>=
+library(knitr)
+library(highlight)  # to highlight R output
+library(xtable)     # to create nice LaTeX tables
+library(epitools)
+library(mice)
+library(miclust)
+@
+
+<<setting, include=FALSE, purl=FALSE>>= 
+options( width = 90, scipen = 4 ) 
+opts_chunk$set( echo = FALSE, eval = TRUE, message = TRUE, warning = TRUE, size = "footnotesize", cache = TRUE, prompt = TRUE) 
+@
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{4cm}
+    \textbf{\Huge Statistics in Health Sciences}
+    \vspace{4em}\\
+    \textbf{\huge \underline{Assignment 2}} \\[1em]
+    \large{Modeling incidence rates with the Poisson regression model}\\
+    [1em]
+    Jordi Ye, NIU: 1751973\\
+    Xavier Gaseni Piñol, NIU: 1753108\\
+    Alejandro Cabezas Bamba, NIU: 1749626\\
+    Xinyu Lou, NIU: 1635130
+    \vfill
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+\label{sec:introduccion}
+In 1961, Doll and Hill\citep{DollHill} sent out a questionnaire to all men on the British Medical Register asking about their smoking habits. Almost 70\% of such men replied. Death certificates were obtained for medical practitioners and causes of death were assigned on the basis of these certificates. The \texttt{breslow} data set\citep{breslow} (attached in the \texttt{breslow.RData} file) contains the person-years of observations and deaths from coronary artery disease accumulated during the first ten years of the study. Such data are shown in Table \ref{tab:coronarydeath}.
+<<Table1, echo=FALSE, results='asis'>>=
+load("breslow.RData")
+
+tabla1 <- reshape(
+  breslow,
+  idvar = "age",
+  timevar = "smoker",
+  direction = "wide"
+)
+
+tabla1 <- tabla1[, c(
+  "age",
+  "personYears.no",
+  "personYears.yes",
+  "deaths.no",
+  "deaths.yes"
+)]
+
+rownames(tabla1) <- NULL
+
+xt <- xtable(
+  tabla1,
+  label = "tab:coronarydeath",
+  align = c("l", "l", "r", "r", "r", "r"),
+  digits = c(0, 0, 0, 0, 0, 0),
+  caption = "Data on coronary death rates."
+)
+
+header <- paste0(
+  " & \\multicolumn{2}{c}{Person-years}",
+  " & \\multicolumn{2}{c}{Coronary deaths} \\\\\n",
+  "\\cline{2-3} \\cline{4-5}\n",
+  "Age & Nonsmokers & Smokers & Nonsmokers & Smokers \\\\\n",
+  "\\hline\n"
+)
+
+print(
+  xt,
+  include.rownames = FALSE,
+  include.colnames = FALSE,
+  caption.placement = "bottom",
+  table.placement = "H",
+  add.to.row = list(
+    pos = list(-1),
+    command = header
+  ),
+  hline.after = nrow(tabla1),
+  comment = FALSE
+)
+@
+
+
+The aim of this exercise is to analyse the relationship between incidence of coronary deaths (outcome of intereset) and smoking status (exposure of interest), taking into account the possible role of age (as a potential confounder or as a potential effect modifier). Specifically:
+\begin{itemize}
+\item In Section \ref{sec:IncidenceRates}, you will estimate incidence rates of coronary mortality and incidence rate ratios associated to smoking status for different age groups. You also will perform a data visualization.
+\item In Section \ref{sec:PoissonModel}, you will use the Poisson regression model to estimate the incidence rate of coronary mortality as a function of smoking status, taking into account age as potential confounder or potential effect modifier.
+\item In Section \ref{sec:Discussion}, you will summarize the results of your analysis.
+\end{itemize}
+
+\section{Comparing incidence rates}
+\label{sec:IncidenceRates}
+\begin{enumerate}
+  \item Add extra columns in Table \ref{tab:coronarydeath} for:
+    \begin{enumerate}[label=\alph*)]
+      \item $I_{r_{ij}}$ the sample coronary death rates per 1000 person-years for smoking status, $i$ ($i = 0$ for nonsmokers and $i = 1$ for smokers) in age group ($j = 0, 1, ..., 4$ for 35-44, 45-54, ..., 75-84, respectively) (two columns, one for each smoking status).
+<<IR, echo = TRUE>>=
+IR_smoker_1000 <- tabla1$deaths.yes / tabla1$personYears.yes * 1000
+IR_non_smoker_1000 <- tabla1$deaths.no / tabla1$personYears.no * 1000
+
+tabla2_a <- cbind(
+  tabla1,
+  IR_non_smoker_1000,
+  IR_smoker_1000
+)
+@
+      \item $\text{IRR}_j = \frac{I_{r_{1j}}}{I_{r_{0j}}}$ the incidence rate ratio for smokers vs. nonsmokers in age group $j$ (one column).
+<<IRR, echo = TRUE, results='asis'>>=
+IRR <- round(tabla2_a$IR_smoker_1000/tabla2_a$IR_non_smoker_1000, 3)
+tabla2_b <- cbind(tabla2_a, IRR)
+
+header <- paste0(
+  " & \\multicolumn{2}{c}{Person-years}",
+  " & \\multicolumn{2}{c}{Coronary deaths}",
+  " & \\multicolumn{2}{c}{Incidence Rate per 1000} \\\\\n",
+  "\\cline{2-3} \\cline{4-5} \\cline{6-7}\n",
+  "Age & Nonsmokers & Smokers & Nonsmokers & Smokers",
+  " & Nonsmokers & Smokers & IRR \\\\\n",
+  "\\hline\n"
+)
+
+xt <- xtable(
+  tabla2_b,
+  label = "tab:tabla2",
+  align = c("l", "l", "r", "r", "r", "r", "r", "r", "r"),
+  digits = c(0, 0, 0, 0, 0, 0, 3, 3, 3),
+  caption = "Data on coronary death rates
+  with incidence rates per 1000 person-years."
+)
+
+print(
+  xt,
+  include.rownames = FALSE,
+  include.colnames = FALSE,
+  caption.placement = "bottom",
+  table.placement = "H",
+  add.to.row = list(
+    pos = list(-1),
+    command = header
+  ),
+  hline.after = nrow(tabla2_b),
+  comment = FALSE
+)
+@
+    \end{enumerate}
+  \item For age group 45-54, complete the following sentences with numbers and proper units
+    \begin{enumerate}[label=\alph*)]
+      \item The incidence rate among smokers was \Sexpr{sprintf("%.3f", tabla2_b$IR_smoker_1000[2])} person per 1000 persons.
+      \item The incidence rate among nonsmokers was \Sexpr{sprintf("%.3f", tabla2_b$IR_non_smoker_1000[2])} persons per 1000 persons.
+      \item The incidence rate ratio was \Sexpr{sprintf("%.3f", tabla2_b$IRR[2])}.\\[5pt] Now, let's calculate the $X^2$ score and the $p$-value for the Wald test:
+<<Wald, echo = TRUE>>=
+I0 <- tabla2_b$deaths.no[2]
+I1 <- tabla2_b$deaths.yes[2]
+dt0 <- tabla2_b$personYears.no[2]
+dt1 <- tabla2_b$personYears.yes[2]
+X2 <- (I1*dt0 - I0*dt1)^2 / ((I0 + I1)*dt0*dt1)
+p_valor <- 1 - pchisq(X2, df = 1)
+@
+      \item The \emph{p}-value of the Wald test to decide if the incidence rate among smokers is the same than among nonsmokers was \Sexpr{sprintf("%.3f",p_valor)}.
+      \item Write a paragraph for the interpretation of previous result (including all quantities).\\[5pt]
+      Among the smoking population who are in the age group of 45-54, each 1000 person there are \Sexpr{sprintf("%.3f", tabla2_b$IR_smoker_1000[2])} persons die by coronary disease issue, comparing to the non-smoking population of the same age group, there are \Sexpr{sprintf("%.3f", tabla2_b$IR_non_smoker_1000[2])} coronary death for each 1000 persons. It is \Sexpr{sprintf("%.3f", tabla2_b$IRR[2])} times more likely to happen a coronary death for the smokers than the non-smokers. Applying a Wald test between these two Incidence Rates, we get the \emph{p}-value of the test (\emph{p}-value = \Sexpr{sprintf("%.3f",p_valor)}) which is statistically sufficient to decline the null hypothesis ($\mathcal{H}_0:\space Ir_0 = Ir_1$). The Incidence Rate for the smoking group is statiscally greater than the the Incidence Rate for the non-smoking group.
+    \end{enumerate}
+  \item Create a graphical visualization, named Figure \ref{fig:figure1}, as follows:
+    \begin{enumerate}[label=\alph*)]
+      \item Figure \ref{fig:figure1} must include two plots, one of them on the left and another on the right.
+      \item Both plots must represent age groups in the horizontal axis and incidence rate ratios in the vertical axis.
+      \item The plot on the right must represent the incidence rate ratios in logarithmic scale but its labels values must be shown in the natural scale.
+      \item Both plots must include proper labels in both axes and proper ticks labels. Specifically, horizontal axis must show labels 35-44, 45-54, ...) and the vertical axis must show the same sequence of values in both plots.
+      \item Figure \ref{fig:figure1} must show a single title shared by the two plots.
+      \item Figure \ref{fig:figure1} must include a detailed caption.
+    \end{enumerate}
+<<Figure1, echo=TRUE, fig=TRUE, fig.show='hold', fig.pos='H', width=8, height=3.2, out.width='0.88\\linewidth', fig.align='center', fig.cap='Incidence rate ratios (IRR) of coronary deaths comparing smokers with nonsmokers across age groups.', fig.lp='fig:', label='figure1'>>=
+age_groups <- as.character(tabla2_b$age)
+y_ticks <- c(0.5, 1, 2, 5, 10, 20, 50)
+y_ticks <- y_ticks[
+  y_ticks <= max(tabla2_b$IRR, na.rm=TRUE) * 1.2 &
+  y_ticks >= min(tabla2_b$IRR, na.rm=TRUE) / 1.2
+]
+y_limits <- range(c(tabla2_b$IRR, y_ticks), na.rm=TRUE)
+y_limits <- c(y_limits[1] * 0.9, y_limits[2] * 1.1)
+
+x <- seq_along(tabla2_b$IRR)
+
+par(mfrow=c(1,2), oma=c(0,0,1,0))
+plot(x, tabla2_b$IRR,
+     type="b",
+     pch=19,
+     col="blue",
+     xaxt="n",
+     yaxt="n",
+     ylim=y_limits,
+     xlab="Age group (years)",
+     ylab="Incidence Rate Ratio",
+     main="Linear scale")
+axis(1, at=x, labels=age_groups, las=2, cex.axis=0.8)
+axis(2, at=y_ticks, labels=y_ticks)
+abline(h=1, lty=2, col="red")
+
+plot(x, tabla2_b$IRR,
+     type="b",
+     pch=19,
+     col="green",
+     log="y",
+     xaxt="n",
+     yaxt="n",
+     ylim=y_limits,
+     xlab="Age group (years)",
+     ylab="Incidence Rate Ratio",
+     main="Logarithmic scale")
+
+axis(1, at=x, labels=age_groups, las=2, cex.axis=0.8)
+axis(2, at=y_ticks, labels=y_ticks)
+abline(h=1, lty=2, col="red")
+title(main="Incidence Rate Ratios by Age Group",
+      outer=TRUE, line=0)
+
+par(mfrow=c(1,1))
+@
+  \item According to Figure \ref{fig:figure1}:
+    \begin{enumerate}[label=\alph*)]
+      \item Is the rate ratio greater than 1 for all age groups? What does it means?\\[3pt]
+      No, the incidence rate ratio (IRR) is not greater than 1 for all age group. According to Figure \ref{fig:figure1}, the IRR is greater than 1 for the age groups 35–44, 45–54, 55–64, and 65–74, indicating that smokers have a higher incidence rate of coronary deaths than nonsmokers in these age groups. However, for the oldest age group (75–84), the IRR is slightly below 1, suggesting that smokers have a slightly lower observed incidence rate of coronary deaths than nonsmokers.
+      \item Is the rate ratio constant over age groups? What does it means?\\[3pt]
+      No, it is not. The IRR decreases progressively with age, indicating that the relative difference in coronary death incidence between smokers and nonsmokers becomes smaller in older age groups. An IRR below 1 does not necessarily imply that smoking has a protective effect. The observed difference may be influenced by other factors, and statistical significance cannot be established without confidence intervals or hypothesis tests.
+    \end{enumerate}
+\end{enumerate}
+
+\section{Modeling incidence rates with a Poisson regression model}
+\label{sec:PoissonModel}
+
+\section{Discussion}
+\label{sec:Discussion}
+
+
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{DollHill}
+ Doll R, Hill A.B. Mortality of British doctors in relation to smoking: Observations on coronary thrombosis. National Cancer Institute Monograph. 1966;19:205-268.
+\bibitem{breslow}
+ Breslow N.E. Cohort Analysis in Epidemiology. In A Celebration of Statistics A.C. Atkinson and S.E. Fienberg (editors). 1985;109-143. Springer-Verlag.
+\end{thebibliography}
+
+\end{document}

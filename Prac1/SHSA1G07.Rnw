@@ -1,5 +1,6 @@
 \documentclass[10pt,a4paper,twoside]{article}
 \linespread{1.1}
+\raggedbottom
 %paquetes
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
@@ -32,6 +33,7 @@ library(highlight)  # to highlight R output
 library(xtable)     # to create nice LaTeX tables
 library(epitools)
 library(mice)
+library(miclust)
 @
 
 <<setting, include=FALSE, purl=FALSE>>= 
@@ -63,7 +65,7 @@ opts_chunk$set( echo = FALSE, eval = TRUE, message = TRUE, warning = TRUE, size 
 
 \section{Introduction}
 
-The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper.
+The aim of this assignment is to apply the framework proposed by Basagaña et al. to the data set \texttt{copd} in the file \texttt{copd\_redux.RData}. Data \texttt{copd} is a subset of 45 variables of the original data analyzed in the cited paper\citep{basagana2013}.
 
 \section{Analysis}
 \subsection{Description of missingness}
@@ -112,7 +114,8 @@ Before staring to decide the arguments for \texttt{method} and \texttt{predictor
 <<Multiple_imputation_1, include = TRUE, echo = TRUE>>=
 str(copd)
 @
-As we see, most of the variables are numerical, however there are some variables which are factors. Their names and corresponding numbers of levels are listed below:
+
+As we see, most of the variables are numerical, however there are some variables are factors. Their names and corresponding numbers of levels are listed below:
 <<Multiple_imputation_2, include=TRUE, echo=TRUE>>=
 categoricas <- names(copd)[sapply(copd, is.factor)]
 categoricas_latex <- gsub("_", "\\\\_", categoricas)
@@ -120,11 +123,178 @@ niveles <- sapply(copd[categoricas], nlevels)
 binarias <- names(niveles[niveles == 2])
 binarias_latex <- gsub("_", "\\\\_", binarias)
 no_binarias <- names(niveles[niveles > 2])
-
+no_binarias_latex <- gsub("_", "\\\\_", no_binarias)
+level_no_binaria <- niveles[niveles > 2]
 @
-As we can see, this data set has \Sexpr{length(categoricas)} variables that are
-factors, and their names are \texttt{\Sexpr{paste(categoricas_latex, collapse = ", ")}}. The following factors are binary distributed: \texttt{\Sexpr{paste(binarias_latex, collapse = ", ")}}
+This data set has \Sexpr{length(categoricas)} variables that are
+factors, and their names are \texttt{\Sexpr{paste(categoricas_latex, collapse = ", ")}}. The following factors are binary distributed: \texttt{\Sexpr{paste(binarias_latex, collapse = ", ")}} while the variable  \texttt{\Sexpr{no_binarias_latex}} has \Sexpr{level_no_binaria} variables.
+
+For the binary variables, we use Logistic Regression model (\texttt{logreg}) as our imputation method which are adapted with the default setting of \texttt{mice} package. In the case of the categorical variable with 6 levels (\texttt{\Sexpr{no_binarias_latex}}) we choose Proportional Odds model \citep{polr} (\texttt{polr}). In the original paper\citep{basagana2013} we could not find any information of this variable as ordinal or nominal, however with the aid of AI we can know it is the measurement of dyspnoea.\citep{graudisnv1} Hence, \texttt{polr} should be the correct method for the imputation. Finally for the rest of the variables, we choose Predictive Mean Matching (the default setting for numeric variables) as the imputation method\\
+
+Also to continue the study we want to which are the variables are completed without any missing. We make a table to get the information:
+<<Multiple_imputation_3, include=TRUE, echo=TRUE, results='asis'>>=
+missing_info <- data.frame(
+  variable = names(copd),
+  missing_n = colSums(is.na(copd)),
+  missing_pct = round(colMeans(is.na(copd)) * 100, 2)
+)
+
+completed_variables <- names(copd)[colSums(is.na(copd)) == 0]
+completed_variables_latex <- gsub("_", "\\\\_", completed_variables)
+
+xt <- xtable(
+  missing_info,
+  caption = "Missing description",
+  label = "tab:missing_description",
+  align = c("l", "l", "r", "r"),
+  digits = c(0, 0, 0, 2)
+)
+
+print(
+  xt,
+  include.rownames = FALSE,
+  include.colnames = TRUE,
+  caption.placement = "top",
+  table.placement = "H"
+)
+@
+
+As shown in Table~\ref{tab:missing_description}, we can see there are some variables beside of \texttt{id} are completed (\texttt{\Sexpr{paste(completed_variables_latex, collapse = ", ")}}). Hence, we do not want to consider them as imputed values and for the variable \texttt{id} we do not want to consider it neither as imputed nor as a predictor.\\
+
+Now, let's fill the arguments for \texttt{method} and \texttt{predictorMatrix}:
+<<Multiple_imputation_4, include=TRUE, echo=TRUE>>=
+ini <- mice(copd, maxit = 0)
+meth <- ini$method
+p_Matrix <- ini$predictorMatrix
+meth["id"] <- ""
+meth[no_binarias] <- "polr"
+for (var in completed_variables) {
+  p_Matrix[var, ] <- 0 #the completed variables are not imputed
+}
+p_Matrix[,"id"] <- 0 #the variable id is not considered as a predictor
+@
+And we start to do the imputation with the arguments that we defined before. 
+<<Multiple_imputation_5, include=TRUE, echo=TRUE, message=FALSE>>=
+imp <- mice(copd, m = 100, 
+            method = meth, predictorMatrix = p_Matrix, 
+            seed = 666,  
+            printFlag = FALSE)
+@
+\subsection{Integration of multiple imputation in cluster analysis}
+Reproduce the original analysis in the paper using the miclust package to integrate multiple imputation in the cluster analysis. Apply the proposed framework using the same setting than in the original analysis. To do that, follow these steps:
+\begin{enumerate}
+\item Read the help of the \texttt{getdata()} function in the \texttt{miclust} package. Then, accordingly, create a list of \texttt{data.frames} and pass it to the \texttt{getdata()} function. Give a detailed explanation of the data processing you did to get that list.
+\item Use the \texttt{miclust()} function to perform the integration of missing data in cluster analysis using the same settings as in the original analysis. Show your code and explain how and why you set all arguments in the \texttt{miclust()} function.
+\end{enumerate}
+Firstly, we shall create the list and execute \texttt{getdata()}
+<<mclust_1, include=TRUE, echo=TRUE>>=
+#help(getdata)
+bd <- complete(imp, action="all", include=TRUE)
+levels(bd[[1]]$graudisn_v1) # revising the variable graudisn_v1 having 6 levels
+# bd preparation
+bd_preparada <- lapply(bd, function(df) {
+  # We do not consider the id
+  df$id <- NULL
+  # Identifacte the factor variables
+  factors <- names(df)[sapply(df, is.factor)]
+  # Consider these numerical levels as factors
+  df[factors] <- lapply(df[factors], function(x) {
+    as.numeric(as.character(x))
+  })
+  df
+})
+dades <- getdata(bd_preparada)
+@
+\texttt{getdata()} is a function which creates an object of class \texttt{miData} to later be able working with the function \texttt{miclust}. In this case, we use the \texttt{imp} object, obtained from the previous multiple imputation analysis, belongs to the \texttt{mids} class and contains 100 imputed datasets. Using the \texttt{complete()} function with \texttt{action = "all"} and \texttt{include = TRUE}, we extract all completed datasets together with the original incomplete dataset, resulting in a list of 101 data frames.\\
+Before applying \texttt{getdata()}, we preprocess each dataset to ensure that the variables are in an appropriate format. We remove the \texttt{id} variable because it is only a patient identifier and does not provide meaningful information for cluster analysis. Then, we identify categorical variables stored as factors using \texttt{is.factor()}. We then convert factors with numeric labels into numeric variables using \texttt{as.numeric(as.character(x))}. This conversion preserves the original numerical labels rather than using the internal factor codes. It is appropriate only when the factor levels represent numerical values and their interpretation is compatible further more with the clustering method.\\
+Finally, we apply the \texttt{getdata()} function to the prepared list of data frames to obtain the data structure required for the subsequent clustering analysis using \texttt{miclust()}.\\
+
+Now we shall work with the \texttt{miclust()} function:
+<<mclust_2, include=TRUE, echo=TRUE>>=
+n <- nrow(dades$rawdata)
+p <- ncol(dades$rawdata)
+n / p
+cluster_results <- miclust(dades, search = "backward",seed = 666)
+@
+We apply the \texttt{miclust()} function to perform cluster analysis across the 100 imputed datasets prepared in the previous step. We use \texttt{search = "backward"} because feature selection.
+
+\section{Results}
+Using \texttt{plot()} and \texttt{summary()} methods in the \texttt{miclust} package, provide plots and tables for the results similar than those shown in the original paper. Also, show a barplot for the percentage of times each variable is selected among the imputed data sets, in decreasing order. Explain how you set all arguments in all functions and methods you use.
+\begin{figure}[H]
+\centering
+<<result1, echo=TRUE, results='hide', fig.width=8, fig.height=6, out.width='\\linewidth'>>=
+plot(cluster_results,
+     k = NULL,
+     metric = "critcf",
+     col.nclfreq = "gray",
+     col.critcf = "gray",
+     col.nvarfreq = "gray",
+     col.varsel = "black")
+@
+\caption{Results of the multiple imputation cluster analysis using the miclust package.}
+\label{fig:figura1}
+\end{figure}
+With CritCF, as the figure \ref{fig:figura1} said we choose 2 cluster instead of 3 clusters. Higher values for CritCF are preferred. This criterion can rank partitions based on different numbers of clusters and different numbers of variables.
+\begin{figure}[H]
+\centering
+<<result2, echo=TRUE, results='hide', fig.width=8, fig.height=6, out.width='\\linewidth'>>=
+frequency <- getvariablesfrequency(cluster_results)
+
+barplot(
+  frequency$percfreq,
+  names.arg = frequency$varnames
+)
+@
+\caption{Percentage of selection.}
+\label{fig:figura2}
+\end{figure}
+With this property, one can design a search strategy to find both the optimal number of clusters and the final variables that need to be included in the analysis. As before, this search strategy will not be exhaustive, and achievement of the global optimum is not guaranteed.One possible search strategy is a backward sequential selection algorithm, which would work as follows (17). For the number of clusters k = 2, …, kmax, where the maximum number of clusters is fixed a priori, the algorithm starts  with a set of selected variables containing all variables and an empty set of  removed variables. The k-means algorithm is run excluding one of the variables in the selected set at a time. The variable that, when excluded, provides a higher value of CritCF is removed from the set of selected variables and added to the set  of removed variables. The process keeps iterating until none of the selected variables brings any improvement in CritCF when excluded. The combination of k and the set of variables that gives a higher CritCF is chosen as the final model.
 
 
+\section{Report}
+
+The multiple imputation cluster analysis was performed on \Sexpr{dim(copd)[1]} with \Sexpr{dim(copd)[2]} variables participants using 100 imputed datasets. The final solution consisted of two clusters, as supported by Figure~\ref{fig:figura1}. The two-cluster solution achieved consistently higher CritCF values than the three-cluster solution, with a median of approximately 0.553 compared with 0.525. Furthermore, the relatively small variability of CritCF for $k=2$ suggests that the selected number of clusters is reasonably stable across imputations. The final cluster sizes and their uncertainty remain to be reported.
+
+Relabelling the clusters across the imputed datasets is necessary because cluster labels are arbitrary and may differ between imputations. The degree of agreement after relabelling should be evaluated to determine whether the same underlying groups are consistently identified. The corresponding agreement statistics are not yet available in the reported results.
+
+Regarding variable selection, the backward search procedure
+was applied to identify the variables contributing most
+strongly to the clustering structure. As shown in
+Figure~\ref{fig:figura2}, the selected variables included
+\texttt{fevp\_postv1}, \texttt{rv\_prepv1},
+\texttt{vas2\_v1}, \texttt{iam\_chv1},
+\texttt{graudisn\_v1}, and \texttt{cil8\_s\_mv1}.
+Their selection frequencies provide information about
+uncertainty: variables repeatedly selected across imputations
+are more stable, whereas variables with lower frequencies
+are more sensitive to the imputed values. The exact final
+subset and its selection frequencies should be confirmed
+from the clustering summary.
+
+Finally, cluster membership probabilities allow the
+uncertainty associated with participant classification
+to be assessed. Probabilities close to one indicate
+strong evidence of membership in a particular cluster,
+whereas probabilities close to 0.5 suggest ambiguous
+classification in a two-cluster solution. These probabilities
+should be summarized for each cluster, together with their
+variability across imputations.
+
+Overall, the analysis supports a two-cluster structure,
+although the stability of cluster membership and the
+uncertainty in cluster sizes and assignment probabilities
+require further numerical assessment.
+
+
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{basagana2013}
+ X. Basagaña, J. Barrera-Gómez, M. Benet, JM. Antó, and J. Garcia-Aymerich. A Framework for Multiple Imputation in Cluster Analysis. \emph{American Journal of Epidemiology}, 177(7):718–725, 2013.
+\bibitem{polr}
+ AI explanation for \texttt{polr}: \textcolor{blue}{\href{https://share.google/aimode/Muw7CNkaLiOs6THoX}{https://share.google/aimode/Muw7CNkaLiOs6THoX}}
+\bibitem{graudisnv1}
+ AI explanation for \texttt{graudisn\_v1}: \textcolor{blue}{\href{https://share.google/aimode/Muw7CNkaLiOs6THoX}{https://share.google/aimode/Muw7CNkaLiOs6THoX}}
+\end{thebibliography}
 
 \end{document}
