@@ -1,0 +1,7 @@
+The Breslow data and analysis suggests that smoking is a risk factor for coronary artery disease,
+but it's effect varies with age. Since the analysis uses a Poisson regression model to compare coronary death incidence 
+rates between smokers and non-smokers with person-years as units. The results show that smokers have higher incidence rates 
+from ages 35-44 all the way until 65-74 with incidence rate ratios greater than 1. Although, the IRR decreases with age, from 5.737 
+until 0.905 from the last age group of 75-84. The fact is that the relative effect of smoking weakens as it ages and it reverses when 
+reaching the oldest age group. So, smoking appears to be an important risk factor, especially around the younger groups. But, these results 
+describe associations in the observed data and do not establish causality themselves.
