@@ -1,0 +1,701 @@
+\documentclass[10pt,a4paper,twoside]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\newcommand{\I}{\mathbbm{1}}
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\linespread{1.1}
+\raggedbottom
+%paquetes
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage[hang,footnotesize,bf]{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[left=2.5cm,top=3cm,bottom=3cm,right=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=10pt,font=small,labelfont=bf]{caption}
+\usepackage[normalem]{ulem}
+\usepackage{hyperref}
+\usepackage[super]{natbib}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{bbm}
+
+%new_commands
+\newcommand{\R}{\textsf{R}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+
+% Las librerías que hacen falta por ahora
+
+
+
+
+
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{4cm}
+    \textbf{\Huge Statistics in Health Sciences}
+    \vspace{4em}\\
+    \textbf{\huge \underline{Assignment 2}} \\[1em]
+    \large{Modeling incidence rates with the Poisson regression model}\\
+    [1em]
+    Jordi Ye, NIU: 1751973\\
+    Xavier Gaseni Piñol, NIU: 1753108\\
+    Alejandro Cabezas Bamba, NIU: 1749626\\
+    Xinyu Lou, NIU: 1635130
+    \vfill
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+\label{sec:introduccion}
+In 1961, Doll and Hill\citep{DollHill} sent out a questionnaire to all men on the British Medical Register asking about their smoking habits. Almost 70\% of such men replied. Death certificates were obtained for medical practitioners and causes of death were assigned on the basis of these certificates. The \texttt{breslow} data set\citep{breslow} (attached in the \texttt{breslow.RData} file) contains the person-years of observations and deaths from coronary artery disease accumulated during the first ten years of the study. Such data are shown in Table \ref{tab:coronarydeath}.
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+   & \multicolumn{2}{c}{Person-years} & \multicolumn{2}{c}{Coronary deaths} \\
+\cline{2-3} \cline{4-5}
+Age & Nonsmokers & Smokers & Nonsmokers & Smokers \\
+\hline
+ 35-44 & 18790 & 52407 & 2 & 32 \\ 
+  45-54 & 10673 & 43248 & 12 & 104 \\ 
+  55-64 & 5710 & 28612 & 28 & 206 \\ 
+  65-74 & 2585 & 12663 & 28 & 186 \\ 
+  75-84 & 1462 & 5317 & 31 & 102 \\ 
+   \hline
+\end{tabular}
+\caption{Data on coronary death rates.} 
+\label{tab:coronarydeath}
+\end{table}
+
+
+
+The aim of this exercise is to analyse the relationship between incidence of coronary deaths (outcome of intereset) and smoking status (exposure of interest), taking into account the possible role of age (as a potential confounder or as a potential effect modifier). Specifically:
+\begin{itemize}
+\item In Section \ref{sec:IncidenceRates}, you will estimate incidence rates of coronary mortality and incidence rate ratios associated to smoking status for different age groups. You also will perform a data visualization.
+\item In Section \ref{sec:PoissonModel}, you will use the Poisson regression model to estimate the incidence rate of coronary mortality as a function of smoking status, taking into account age as potential confounder or potential effect modifier.
+\item In Section \ref{sec:Discussion}, you will summarize the results of your analysis.
+\end{itemize}
+
+\section{Comparing incidence rates}
+\label{sec:IncidenceRates}
+\begin{enumerate}
+  \item Add extra columns in Table \ref{tab:coronarydeath} for:
+    \begin{enumerate}[label=\alph*)]
+      \item $I_{r_{ij}}$ the sample coronary death rates per 1000 person-years for smoking status, $i$ ($i = 0$ for nonsmokers and $i = 1$ for smokers) in age group ($j = 0, 1, ..., 4$ for 35-44, 45-54, ..., 75-84, respectively) (two columns, one for each smoking status).
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{IR_smoker_1000} \hlkwb{<-} \hldef{tabla1}\hlopt{$}\hldef{deaths.yes} \hlopt{/} \hldef{tabla1}\hlopt{$}\hldef{personYears.yes} \hlopt{*} \hlnum{1000}
+\hldef{> }\hldef{IR_non_smoker_1000} \hlkwb{<-} \hldef{tabla1}\hlopt{$}\hldef{deaths.no} \hlopt{/} \hldef{tabla1}\hlopt{$}\hldef{personYears.no} \hlopt{*} \hlnum{1000}
+\hldef{> }
+\hldef{> }\hldef{tabla2_a} \hlkwb{<-} \hlkwd{cbind}\hldef{(}
+\hldef{+ }  \hldef{tabla1,}
+\hldef{+ }  \hldef{IR_non_smoker_1000,}
+\hldef{+ }  \hldef{IR_smoker_1000}
+\hldef{+ }\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+      \item $\text{IRR}_j = \frac{I_{r_{1j}}}{I_{r_{0j}}}$ the incidence rate ratio for smokers vs. nonsmokers in age group $j$ (one column).
+\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{IRR} \hlkwb{<-} \hlkwd{round}\hldef{(tabla2_a}\hlopt{$}\hldef{IR_smoker_1000}\hlopt{/}\hldef{tabla2_a}\hlopt{$}\hldef{IR_non_smoker_1000,} \hlnum{3}\hldef{)}
+\hldef{> }\hldef{tabla2_b} \hlkwb{<-} \hlkwd{cbind}\hldef{(tabla2_a, IRR)}
+\hldef{> }
+\hldef{> }\hldef{header} \hlkwb{<-} \hlkwd{paste0}\hldef{(}
+\hldef{+ }  \hlsng{" & \textbackslash{}\textbackslash{}multicolumn\{2\}\{c\}\{Person-years\}"}\hldef{,}
+\hldef{+ }  \hlsng{" & \textbackslash{}\textbackslash{}multicolumn\{2\}\{c\}\{Coronary deaths\}"}\hldef{,}
+\hldef{+ }  \hlsng{" & \textbackslash{}\textbackslash{}multicolumn\{2\}\{c\}\{Incidence Rate per 1000\} \textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}n"}\hldef{,}
+\hldef{+ }  \hlsng{"\textbackslash{}\textbackslash{}cline\{2-3\} \textbackslash{}\textbackslash{}cline\{4-5\} \textbackslash{}\textbackslash{}cline\{6-7\}\textbackslash{}n"}\hldef{,}
+\hldef{+ }  \hlsng{"Age & Nonsmokers & Smokers & Nonsmokers & Smokers"}\hldef{,}
+\hldef{+ }  \hlsng{" & Nonsmokers & Smokers & IRR \textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}\textbackslash{}n"}\hldef{,}
+\hldef{+ }  \hlsng{"\textbackslash{}\textbackslash{}hline\textbackslash{}n"}
+\hldef{+ }\hldef{)}
+\hldef{> }
+\hldef{> }\hldef{xt} \hlkwb{<-} \hlkwd{xtable}\hldef{(}
+\hldef{+ }  \hldef{tabla2_b,}
+\hldef{+ }  \hlkwc{label} \hldef{=} \hlsng{"tab:tabla2"}\hldef{,}
+\hldef{+ }  \hlkwc{align} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"l"}\hldef{,} \hlsng{"l"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{,} \hlsng{"r"}\hldef{),}
+\hldef{+ }  \hlkwc{digits} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{3}\hldef{,} \hlnum{3}\hldef{,} \hlnum{3}\hldef{),}
+\hldef{+ }  \hlkwc{caption} \hldef{=} \hlsng{"Data on coronary death rates
+  with incidence rates per 1000 person-years."}
+\hldef{+ }\hldef{)}
+\hldef{> }
+\hldef{> }\hlkwd{print}\hldef{(}
+\hldef{+ }  \hldef{xt,}
+\hldef{+ }  \hlkwc{include.rownames} \hldef{=} \hlnum{FALSE}\hldef{,}
+\hldef{+ }  \hlkwc{include.colnames} \hldef{=} \hlnum{FALSE}\hldef{,}
+\hldef{+ }  \hlkwc{caption.placement} \hldef{=} \hlsng{"bottom"}\hldef{,}
+\hldef{+ }  \hlkwc{table.placement} \hldef{=} \hlsng{"H"}\hldef{,}
+\hldef{+ }  \hlkwc{add.to.row} \hldef{=} \hlkwd{list}\hldef{(}
+\hldef{+ }    \hlkwc{pos} \hldef{=} \hlkwd{list}\hldef{(}\hlopt{-}\hlnum{1}\hldef{),}
+\hldef{+ }    \hlkwc{command} \hldef{= header}
+\hldef{+ }  \hldef{),}
+\hldef{+ }  \hlkwc{hline.after} \hldef{=} \hlkwd{nrow}\hldef{(tabla2_b),}
+\hldef{+ }  \hlkwc{comment} \hldef{=} \hlnum{FALSE}
+\hldef{+ }\hldef{)}
+\end{alltt}
+\end{kframe}\begin{table}[H]
+\centering
+\begin{tabular}{lrrrrrrr}
+   & \multicolumn{2}{c}{Person-years} & \multicolumn{2}{c}{Coronary deaths} & \multicolumn{2}{c}{Incidence Rate per 1000} \\
+\cline{2-3} \cline{4-5} \cline{6-7}
+Age & Nonsmokers & Smokers & Nonsmokers & Smokers & Nonsmokers & Smokers & IRR \\
+\hline
+ 35-44 & 18790 & 52407 & 2 & 32 & 0.106 & 0.611 & 5.737 \\ 
+  45-54 & 10673 & 43248 & 12 & 104 & 1.124 & 2.405 & 2.139 \\ 
+  55-64 & 5710 & 28612 & 28 & 206 & 4.904 & 7.200 & 1.468 \\ 
+  65-74 & 2585 & 12663 & 28 & 186 & 10.832 & 14.688 & 1.356 \\ 
+  75-84 & 1462 & 5317 & 31 & 102 & 21.204 & 19.184 & 0.905 \\ 
+   \hline
+\end{tabular}
+\caption{Data on coronary death rates
+  with incidence rates per 1000 person-years.} 
+\label{tab:tabla2}
+\end{table}
+
+    \end{enumerate}
+  \item For age group 45-54, complete the following sentences with numbers and proper units
+    \begin{enumerate}[label=\alph*)]
+      \item The incidence rate among smokers was 2.405 person per 1000 people.
+      \item The incidence rate among nonsmokers was 1.124 people per 1000 people.
+      \item The incidence rate ratio was 2.139.\\[5pt] Now, let's calculate the $X^2$ score and the $p$-value for the Wald test:
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{I0} \hlkwb{<-} \hldef{tabla2_b}\hlopt{$}\hldef{deaths.no[}\hlnum{2}\hldef{]}
+\hldef{> }\hldef{I1} \hlkwb{<-} \hldef{tabla2_b}\hlopt{$}\hldef{deaths.yes[}\hlnum{2}\hldef{]}
+\hldef{> }\hldef{dt0} \hlkwb{<-} \hldef{tabla2_b}\hlopt{$}\hldef{personYears.no[}\hlnum{2}\hldef{]}
+\hldef{> }\hldef{dt1} \hlkwb{<-} \hldef{tabla2_b}\hlopt{$}\hldef{personYears.yes[}\hlnum{2}\hldef{]}
+\hldef{> }\hldef{X2} \hlkwb{<-} \hldef{(I1}\hlopt{*}\hldef{dt0} \hlopt{-} \hldef{I0}\hlopt{*}\hldef{dt1)}\hlopt{^}\hlnum{2} \hlopt{/} \hldef{((I0} \hlopt{+} \hldef{I1)}\hlopt{*}\hldef{dt0}\hlopt{*}\hldef{dt1)}
+\hldef{> }\hldef{p_valor} \hlkwb{<-} \hlnum{1} \hlopt{-} \hlkwd{pchisq}\hldef{(X2,} \hlkwc{df} \hldef{=} \hlnum{1}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+      \item The \emph{p}-value of the Wald test to decide if the incidence rate among smokers is the same than among nonsmokers was 0.011.
+      \item Write a paragraph for the interpretation of previous result (including all quantities).\\[5pt]
+      Among the smoking population who are in the age group of 45-54, there are 2.405 deaths from coronary disease per 1000 persons-years, comparing that to the non-smoking population of the same age group, there are 1.124 coronary deaths per 1000 persons-year. It is 2.139 times more likely to happen a coronary death for the smokers than the non-smokers. Applying a Wald test between these two Incidence Rates, we get the \emph{p}-value of the test (\emph{p}-value = 0.011) which is statistically sufficient to decline the null hypothesis ($\mathcal{H}_0:\space Ir_0 = Ir_1$). The Incidence Rate for the smoking group is statiscally greater than the the Incidence Rate for the non-smoking group.
+    \end{enumerate}
+  \item Create a graphical visualization, named Figure \ref{fig:figure1}, as follows:
+    \begin{enumerate}[label=\alph*)]
+      \item Figure \ref{fig:figure1} must include two plots, one of them on the left and another on the right.
+      \item Both plots must represent age groups in the horizontal axis and incidence rate ratios in the vertical axis.
+      \item The plot on the right must represent the incidence rate ratios in logarithmic scale but its labels values must be shown in the natural scale.
+      \item Both plots must include proper labels in both axes and proper ticks labels. Specifically, horizontal axis must show labels 35-44, 45-54, ...) and the vertical axis must show the same sequence of values in both plots.
+      \item Figure \ref{fig:figure1} must show a single title shared by the two plots.
+      \item Figure \ref{fig:figure1} must include a detailed caption.
+    \end{enumerate}
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{> }\hldef{age_groups} \hlkwb{<-} \hlkwd{as.character}\hldef{(tabla2_b}\hlopt{$}\hldef{age)}
+\hldef{> }\hldef{y_ticks} \hlkwb{<-} \hlkwd{c}\hldef{(}\hlnum{0.5}\hldef{,} \hlnum{1}\hldef{,} \hlnum{2}\hldef{,} \hlnum{5}\hldef{,} \hlnum{10}\hldef{,} \hlnum{20}\hldef{,} \hlnum{50}\hldef{)}
+\hldef{> }\hldef{y_ticks} \hlkwb{<-} \hldef{y_ticks[}
+\hldef{+ }  \hldef{y_ticks} \hlopt{<=} \hlkwd{max}\hldef{(tabla2_b}\hlopt{$}\hldef{IRR,} \hlkwc{na.rm}\hldef{=}\hlnum{TRUE}\hldef{)} \hlopt{*} \hlnum{1.2} \hlopt{&}
+\hldef{+ }  \hldef{y_ticks} \hlopt{>=} \hlkwd{min}\hldef{(tabla2_b}\hlopt{$}\hldef{IRR,} \hlkwc{na.rm}\hldef{=}\hlnum{TRUE}\hldef{)} \hlopt{/} \hlnum{1.2}
+\hldef{+ }\hldef{]}
+\hldef{> }\hldef{y_limits} \hlkwb{<-} \hlkwd{range}\hldef{(}\hlkwd{c}\hldef{(tabla2_b}\hlopt{$}\hldef{IRR, y_ticks),} \hlkwc{na.rm}\hldef{=}\hlnum{TRUE}\hldef{)}
+\hldef{> }\hldef{y_limits} \hlkwb{<-} \hlkwd{c}\hldef{(y_limits[}\hlnum{1}\hldef{]} \hlopt{*} \hlnum{0.9}\hldef{, y_limits[}\hlnum{2}\hldef{]} \hlopt{*} \hlnum{1.1}\hldef{)}
+\hldef{> }
+\hldef{> }\hldef{x} \hlkwb{<-} \hlkwd{seq_along}\hldef{(tabla2_b}\hlopt{$}\hldef{IRR)}
+\hldef{> }
+\hldef{> }\hlkwd{par}\hldef{(}\hlkwc{mfrow}\hldef{=}\hlkwd{c}\hldef{(}\hlnum{1}\hldef{,}\hlnum{2}\hldef{),} \hlkwc{oma}\hldef{=}\hlkwd{c}\hldef{(}\hlnum{0}\hldef{,}\hlnum{0}\hldef{,}\hlnum{1}\hldef{,}\hlnum{0}\hldef{))}
+\hldef{> }\hlkwd{plot}\hldef{(x, tabla2_b}\hlopt{$}\hldef{IRR,}
+\hldef{+ }     \hlkwc{type}\hldef{=}\hlsng{"b"}\hldef{,}
+\hldef{+ }     \hlkwc{pch}\hldef{=}\hlnum{19}\hldef{,}
+\hldef{+ }     \hlkwc{col}\hldef{=}\hlsng{"blue"}\hldef{,}
+\hldef{+ }     \hlkwc{xaxt}\hldef{=}\hlsng{"n"}\hldef{,}
+\hldef{+ }     \hlkwc{yaxt}\hldef{=}\hlsng{"n"}\hldef{,}
+\hldef{+ }     \hlkwc{ylim}\hldef{=y_limits,}
+\hldef{+ }     \hlkwc{xlab}\hldef{=}\hlsng{"Age group (years)"}\hldef{,}
+\hldef{+ }     \hlkwc{ylab}\hldef{=}\hlsng{"Incidence Rate Ratio"}\hldef{,}
+\hldef{+ }     \hlkwc{main}\hldef{=}\hlsng{"Linear scale"}\hldef{)}
+\hldef{> }\hlkwd{axis}\hldef{(}\hlnum{1}\hldef{,} \hlkwc{at}\hldef{=x,} \hlkwc{labels}\hldef{=age_groups,} \hlkwc{las}\hldef{=}\hlnum{2}\hldef{,} \hlkwc{cex.axis}\hldef{=}\hlnum{0.8}\hldef{)}
+\hldef{> }\hlkwd{axis}\hldef{(}\hlnum{2}\hldef{,} \hlkwc{at}\hldef{=y_ticks,} \hlkwc{labels}\hldef{=y_ticks)}
+\hldef{> }\hlkwd{abline}\hldef{(}\hlkwc{h}\hldef{=}\hlnum{1}\hldef{,} \hlkwc{lty}\hldef{=}\hlnum{2}\hldef{,} \hlkwc{col}\hldef{=}\hlsng{"red"}\hldef{)}
+\hldef{> }
+\hldef{> }\hlkwd{plot}\hldef{(x, tabla2_b}\hlopt{$}\hldef{IRR,}
+\hldef{+ }     \hlkwc{type}\hldef{=}\hlsng{"b"}\hldef{,}
+\hldef{+ }     \hlkwc{pch}\hldef{=}\hlnum{19}\hldef{,}
+\hldef{+ }     \hlkwc{col}\hldef{=}\hlsng{"green"}\hldef{,}
+\hldef{+ }     \hlkwc{log}\hldef{=}\hlsng{"y"}\hldef{,}
+\hldef{+ }     \hlkwc{xaxt}\hldef{=}\hlsng{"n"}\hldef{,}
+\hldef{+ }     \hlkwc{yaxt}\hldef{=}\hlsng{"n"}\hldef{,}
+\hldef{+ }     \hlkwc{ylim}\hldef{=y_limits,}
+\hldef{+ }     \hlkwc{xlab}\hldef{=}\hlsng{"Age group (years)"}\hldef{,}
+\hldef{+ }     \hlkwc{ylab}\hldef{=}\hlsng{"Incidence Rate Ratio"}\hldef{,}
+\hldef{+ }     \hlkwc{main}\hldef{=}\hlsng{"Logarithmic scale"}\hldef{)}
+\hldef{> }
+\hldef{> }\hlkwd{axis}\hldef{(}\hlnum{1}\hldef{,} \hlkwc{at}\hldef{=x,} \hlkwc{labels}\hldef{=age_groups,} \hlkwc{las}\hldef{=}\hlnum{2}\hldef{,} \hlkwc{cex.axis}\hldef{=}\hlnum{0.8}\hldef{)}
+\hldef{> }\hlkwd{axis}\hldef{(}\hlnum{2}\hldef{,} \hlkwc{at}\hldef{=y_ticks,} \hlkwc{labels}\hldef{=y_ticks)}
+\hldef{> }\hlkwd{abline}\hldef{(}\hlkwc{h}\hldef{=}\hlnum{1}\hldef{,} \hlkwc{lty}\hldef{=}\hlnum{2}\hldef{,} \hlkwc{col}\hldef{=}\hlsng{"red"}\hldef{)}
+\hldef{> }\hlkwd{title}\hldef{(}\hlkwc{main}\hldef{=}\hlsng{"Incidence Rate Ratios by Age Group"}\hldef{,}
+\hldef{+ }      \hlkwc{outer}\hldef{=}\hlnum{TRUE}\hldef{,} \hlkwc{line}\hldef{=}\hlnum{0}\hldef{)}
+\hldef{> }
+\hldef{> }\hlkwd{par}\hldef{(}\hlkwc{mfrow}\hldef{=}\hlkwd{c}\hldef{(}\hlnum{1}\hldef{,}\hlnum{1}\hldef{))}
+\end{alltt}
+\end{kframe}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.88\linewidth]{figure/figure1-1} 
+
+}
+
+\caption[Incidence rate ratios (IRR) of coronary deaths comparing smokers with nonsmokers across age groups]{Incidence rate ratios (IRR) of coronary deaths comparing smokers with nonsmokers across age groups.}\label{fig:figure1}
+\end{figure}
+
+\end{knitrout}
+  \item According to Figure \ref{fig:figure1}:
+    \begin{enumerate}[label=\alph*)]
+      \item Is the rate ratio greater than 1 for all age groups? What does it means?\\[3pt]
+      No, the incidence rate ratio (IRR) is not greater than 1 for all age group. According to Figure \ref{fig:figure1}, the IRR is greater than 1 for the age groups 35–44, 45–54, 55–64, and 65–74, indicating that smokers have a higher incidence rate of coronary deaths than nonsmokers in these age groups. However, for the oldest age group (75–84), the IRR is slightly below 1, suggesting that smokers have a slightly lower observed incidence rate of coronary deaths than nonsmokers.
+      \item Is the rate ratio constant over age groups? What does it means?\\[3pt]
+      No, it is not. The IRR decreases progressively with age, indicating that the relative difference in coronary death incidence between smokers and nonsmokers becomes smaller in older age groups. An IRR below 1 does not necessarily imply that smoking has a protective effect. The observed difference may be influenced by other factors, and statistical significance cannot be established without confidence intervals or hypothesis tests.
+    \end{enumerate}
+\end{enumerate}
+
+
+\section{Modeling incidence rates with a Poisson regression model}
+\label{sec:PoissonModel}
+
+Suppose we are interested in modeling the coronary deaths rate, $I_{r} = \frac{I}{\Delta t}$ where $I$ is the coronary deaths count and $\Delta  t$ is follow-up (in person-years), as a function of smoking status ($E$) which is the exposure of interest, and age group (A), as a potential confounder or as a potential effect modifier.
+
+To do that, we consider here the Generalized Linear Model (GLM) framework. GLM can be thought as an extension of the linear regression model for cases in which the outcome is assumed to follow a probability distribution different to the normal distribution. In the specific case in which the outcome is assumed to follow a Poisson distribution, we have a particular case of GLM named Poisson regression model. Since our outcome, the coronary mortality $I$, is a count variable  it makes sense considering here the Poisson regression model. 
+
+Regarding the role of age in the association of interest (i.e., the association between coronary mortality and smoking status), we consider two possible scenarios:
+
+\begin{itemize}
+    \item \textbf{Scenario 1:} Age could be a confounder in the association of interest, i.e., when comparing incidence rates between smokers and nonsmoker via incidence rate ratio (IRR), the comparison must be done within the same age group (i.e., we are estimating age-adjusted IRR), and we are assuming that IRR resulting of comparing smokers vs nonsmokers within each age group is the same (i.e., age-adjusted IRR does not depend on age). In this scenario, the Poisson regression model to estimate the coronary deaths rate for individuals with smoking status $i$ and in age group $j$, $I_{r_{ij}}$, is
+    \begin{equation}
+\label{eq:modelmain}
+\left\{
+\begin{array}{l}
+\bullet\ \text{Probability distribution:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+I_{r_{ij}}
+=
+\frac{I_{ij}}{\Delta t_{ij}},
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+I_{ij} \sim  \text{Pois}(\lambda_{ij}),
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Delta t_{ij}\text{ is the follow-up;}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bullet\ \text{Model for the mean:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+\log
+\left(
+\frac{\lambda_{ij}}{\Delta t_{ij}}
+\right)
+=
+L(E_i, A_j) \text{ (the linear predictor)}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+L(E_i, A_j)
+ = 
+\alpha + \beta_i E_i + \gamma_j A_j\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+}
+ = 
+\alpha + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + \beta_1 \I_{i=1} + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + 
+\gamma_1 \I_{j=1} +
+\gamma_2 \I_{j=2} +
+\gamma_3 \I_{j=3} +
+\gamma_4 \I_{j=4},
+\end{array}
+\right.
+\end{equation}
+where
+\begin{equation*}
+\I_{x=a}
+=
+\left\{
+\begin{array}{ll}
+1, & \text{if } x = a \\
+0, & \text{if } x \neq a
+\end{array}
+\right..
+\end{equation*}
+
+    \item \textbf{Scenario 2:} Age could be an effect modifier\footnotemark in the association of interest, i.e., when comparing incidence rates between smokers and non-smokers through IRR within the same age group (i.e., we estimate the age-adjusted IRR), the resulting IRR is not the same in all age groups (i.e., the age-adjusted IRR depends on age). In this scenario, the Poisson regression model to estimate the coronary deaths rate for individuals with smoking status $i$ and in age group $j$, $I_{r_{ij}}$, is
+    \begin{equation}
+\label{eq:modelinter}
+\left\{
+\begin{array}{l}
+\bullet\ \text{Probability distribution:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+I_{r_{ij}}
+=
+\frac{I_{ij}}{\Delta t_{ij}},
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+I_{ij} \sim  \text{Pois}(\lambda_{ij}),
+\qquad
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Delta t_{ij}\text{ is the follow-up;}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bullet\ \text{Model for the mean:} \\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+\log
+\left(
+\frac{\lambda_{ij}}{\Delta t_{ij}}
+\right)
+=
+L(E_i, A_j) \text{ (the linear predictor)}\\ \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\qquad
+L(E_i, A_j)
+ = 
+\alpha + \beta_i E_i + \gamma_j A_j + \delta_{ij} E_i A_j\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+}
+ = 
+\alpha + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + \beta_1 \I_{i=1} + \\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + 
+\gamma_{1} \I_{j=1} +
+\gamma_{2} \I_{j=2} +
+\gamma_{3} \I_{j=3} +
+\gamma_{4} \I_{j=4} +\\
+%%%
+\phantom{
+\qquad
+L(E_i, A_j)
+} + 
+\delta_{11} \I_{i=1}\I_{j=1} +
+\delta_{12} \I_{i=1}\I_{j=2} +
+\delta_{13} \I_{i=1}\I_{j=3} +
+\delta_{14} \I_{i=1}\I_{j=4}.
+\end{array}
+\right.
+\end{equation}
+Note that, in models (\ref{eq:modelmain}) and (\ref{eq:modelinter})\footnotemark, $I_{r_{ij}}$ is a random variable (different individuals with same smoking status and age can suffer or not coronary death within the same follow-up). 
+Hence, the aim of fitting models (\ref{eq:modelmain}) and (\ref{eq:modelinter}) is to estimate the expectation (i.e., mean) of
+the coronary deaths rate as:
+\begin{equation*}
+E(I_{rij}) = E\left(\frac{I_{ij}}{\Delta t_{ij}}\right)
+= \frac{E(I_{ij})}{\Delta t_{ij}}
+= \frac{\lambda_{ij}}{\Delta t_{ij}}
+= \exp\left(L(E_i,A_j)\right).
+\end{equation*}
+\end{itemize}
+\begin{enumerate}
+    \item  Note that the logarithm function in models (\ref{eq:modelmain}) and (\ref{eq:modelinter}) implies that we are assuming that the incidence rate varies exponentially with age. Is that assumption reasonable based on information provided by Figure \ref{fig:figure1}? Why?
+
+    Based on Figure \ref{fig:figure1} 
+
+    \item Prove that, under model (\ref{eq:modelmain}) the age-adjusted expected IRR for smokers vs non-smokers in group $j$ does not depend on age and it is:
+
+    \begin{equation}
+    \label{eq:betadependent}
+        IRR_{j} = exp(\beta_{1}),  \forall j
+    \end{equation}
+    
+    
+    When under model (\ref{eq:modelmain}), the regression model we have is
+    \[
+    \log \left(\frac{\lambda_{ij}}{\Delta t_{ij}} \right) = \alpha + \beta_{i} E_{i} + \gamma_{j} A_{j}
+    \]
+    where binary variable $E_{i}$ represents the smokers ($E_{i} = 1$) and the non-smokers ($E_{i}=0$) and $A_{j}$ represents the age group. So for that we have to calculate for both situations of $E_{i}$.
+    \begin{enumerate}
+        \item For smokers ($E_{i} = 1$):
+    \[
+        \frac{\lambda_{1j}}{\Delta t_{1j}} = exp \left( \alpha + \beta_{1} + \gamma_{j} A_{j} \right)
+    \]
+        \item For non-smokers ($E_{i} = 0$)
+        \[
+        \frac{\lambda_{0j}}{\Delta t_{0j}} = exp \left( \alpha + \gamma_{j} A_{j} \right)
+    \]
+    \end{enumerate}
+If we then calculate the incident rate ratio (IRR):
+\[
+        IRR_{j} = \frac{exp \left( \alpha + \beta_{1} + \gamma_{j} A_{j} \right) }{exp \left(\alpha + \gamma_{j} A_{j} \right)}
+    \]
+By using the properties of exponential functions:
+\[
+    IRR_{j} = exp \left(\alpha + \beta_{1} + \gamma_{j} A_{j} - \alpha - \gamma_{j} A_{j}\right)
+\]
+
+Therefore:
+
+\[
+    IRR_{j} = exp \left(\beta_{1}\right), \forall j
+\]
+
+We get that the term $\alpha$ and $\gamma_{j} A_{j}$ cancel eachother out when calculating the ratio. So our expected IRR is constant across all age groups and only depends on the coefficient $\beta_{1}$
+
+\item Prove that, under model (\ref{eq:modelinter}), the age-adjusted expected IRR for smokers vs nonsmokers in group $j$ depends on age and it is:
+\begin{equation}
+\label{eq: equationsystem1}
+IRR_{j} =
+\begin{cases}
+exp\left(\beta_{1}\right), & \text{if $j = 0$} \\
+exp\left(\beta_{1} + \delta_{1j}\right), & \text{if $j \neq 0$}
+\end{cases}
+\end{equation}
+
+
+\item  According to Figure 1, explain what sign (i.e., positive, negative or zero) do you expect for $\delta_{1j}$ in model(\ref{eq:modelinter}).
+
+If we use the equation (\ref{eq: equationsystem1}) from exercise 3, we know that $A$ represents if the subject is from an age group, where the $j$'s are indexed where $j = 0$ is the age group 35-44, and then $j \neq 0$ for the rest of age groups. 
+
+If we separate for every other age group ($j \neq 0$) we get that: 
+\[
+IRR_{j} = exp(\beta_1 + \delta_{1j})
+\]
+We use the logarithm to get rid of the exponential:
+\[
+\log(IRR_{j}) = \beta_1 + \delta_{1j}
+\]
+
+And then we do the same for $j = 0$:
+\[
+\log(IRR_{0}) = \beta_1
+\]
+
+If we substract them, what remains is our $\delta_{1j}$. And thanks to Table \ref{tab:tabla2} we know that all IRR from age groups $1, 2, 3, 4$ (when $j \neq 0$) when we substract the IRR from age group $5$, what remains is always positive.
+
+\[
+\delta_{1j}=\log(IRR_j)-\log(IRR_0)
+\]
+
+Where $IRR_{j} < IRR_{0} \ \ \forall \ j = 1, 2, 3, 4$, therefore,
+
+\[
+\delta_{1j} < 0 \ \ \forall \ j= 1, 2, 3, 4
+\]
+
+So all interaction coefficients are expected to be negative due to the relative effect of smoking on coronary death incidence is greater in younger age groups than the older. And as age increases, the IRR decreases which eventually falls to 1 or below.
+
+\item Now, we fit models (\ref{eq:modelmain}) and (\ref{eq:modelinter}) in R:
+
+The only difference between models (\ref{eq:modelmain}) and (\ref{eq:modelinter}) is the interaction term $\delta_{ij}E_{i}A_{j}$
+included in model (\ref{eq:modelinter}). Now, we test the significance of this interaction term using
+the Likelihood-ratio test (LRT) and setting a significance level of 0.05. In this LRT,
+the null hypothesis is that $\delta_{ij}E_{i}A_{j} = 0$ , i.e., that models (\ref{eq:modelmain}) and (\ref{eq:modelinter}) are the same model:
+
+According to the p-value = 0.0164 < 0.05, we reject the null hypothesis. Accordingly, from now on, we discard model (\ref{eq:modelmain}) and \textbf{continue the exercise using model} (\ref{eq:modelinter}) (\textbf{i.e., the fitted model} mod2). As a consequence, we are assuming that age is an
+effect modifier.
+
+\item According to the fitted model mod2, complete the following list \textbf{(using \textbackslash{Sexpr} in your Rnw document):}
+\begin{itemize}
+    \item $\hat{\alpha}=$
+    \item $\hat{\beta_{1}} =$
+    \item $\hat{\gamma_{1}} =$
+    \item $\hat{\gamma_{2}}=$
+    \item $\hat{\gamma_{3}}=$
+    \item $\hat{\gamma_{4}}=$
+    \item $\hat{\delta_{1}}=$
+    \item $\hat{\delta_{2}}=$
+    \item $\hat{\delta_{3}}=$
+    \item $\hat{\delta_{4}}=$
+\end{itemize}
+    \item Use formula \ref{eq: equationsystem1} and estimates provided by summary(mod2) to complete the following list \textbf{(using \textbackslash{Sexpr} in your Rnw document):}
+    \begin{itemize}
+        \item $\widehat{IRR_{35-44}} =$
+        \item $\widehat{IRR_{45-54}}=$
+        \item $\widehat{IRR_{55-64}}=$
+        \item $\widehat{IRR_{65-74}} =$
+        \item $\widehat{IRR_{75-84}} =$
+    \end{itemize}
+\item Solve again questions 2. and 3. (only (a), (b) and (c)) in Section \ref{sec:IncidenceRates}, but using now
+model (\ref{eq:modelinter}), formula \ref{eq: equationsystem1} and coefficients estimates provided by summary(mod2). Check that you get identical results. What do you think is the reason for this?
+\end{enumerate}
+For age group 45-54 $(j \neq 0)$,\begin{itemize} 
+    \item The incidence rate among smokers was ... person per 1000 people.
+    \item The incidence rate among nonsmokers was ... people per 1000 people.
+    \item The incidence rate ratio was ... 
+\end{itemize}
+\[
+\]
+For the age group 75-84 $(j = 0)$, \begin{itemize}
+    \item The incidence rate among smokers was ... person per 1000 people.
+    \item The incidence rate among nonsmokers was ... people per 1000 people.
+    \item The incidence rate ratio was ...
+\end{itemize}
+      
+
+\footnotetext{We say Z is an effect modifier of the association between X and Y if the effect of X on Y depends on Z. For instance, in our data, age (Z) would be an effect modifier of the association between smoking status (X) and coronary mortality (Y) if the age-adjusted coronary mortality incidence rate ratio when comparing smokers vs nonsmokers depends on age.}
+
+\section{Discussion}
+\label{sec:Discussion}
+
+Based on the results of this analysis of the breslow data, discuss, in no more than 10 lines, about if smoking is a risk factor for coronary artery disease. Specifically, take into account concepts such as the data context, the modeling approach and the role of age.
+
+\section{Use of artificial intelligence (AI) technologies}
+\label{sec:AIuse}
+\subsection{Instructions}
+\label{sec:Instructions}
+For the completion of this assignment, restricted use of Artificial Intelligence (AI) technologies is permitted. Specifically, the use of AI is allowed exclusively for the following tasks:
+
+\begin{itemize}
+    \item Literature or information search
+    \item Linguistic proofreading and/or translation of text
+    \item Help with \LaTeX code
+    \item Review of R code that has been previously created by the students without the use of AI
+\end{itemize}
+\begin{enumerate}
+    \item Clearly and thoroughly identify which contents and results presented in this work have been generated using AI. For each of these contents and results, specify:
+    \begin{itemize}
+        \item  Identification of the content (e.g., table, figure, R chunk, interpretation, summarization, translation, etc)
+        \item Name and version of the AI
+        \item Prompt (question or questions asked to the AI)
+    \end{itemize}
+\textbf{AI tool used:} ChatGPT (OpenAI, GPT-6).
+
+\textbf{1. Statistical concepts and interpretation of results (Sections 2 and 3)}
+
+Prompts:
+\begin{itemize}
+    \item "Can you explain what an Incidence Rate Ratio represents and how it should be interpreted?"
+    \item "What does it mean when the incidence rate ratio is greater than or lower than 1?"
+    \item "How should we interpret the decrease in the incidence rate ratio across the different age groups?"
+\end{itemize}
+
+\textbf{2. Mathematical explanations and Poisson regression models (Section 3)}
+
+Prompts:
+\begin{itemize}
+    \item "Can you explain the difference between Poisson regression models with an interaction term and those without it?"
+    \item "How do we interpret the interaction coefficients in model (2), and what does their sign tell us about smoking and coronary mortality?"
+\end{itemize}
+
+\textbf{3. LaTeX coding}
+
+Prompts:
+\begin{itemize}
+    \item "How to write Ir = I/$\Delta$t in LaTeX to look like a formula/equation?"
+    \item "Running pdflatex.exe on SHSA2G07.tex...failed. What is the error?"
+    \item "Where to find figure1-1 if it doesn't compile correctly?"
+    \item "How do I fix a unicode character error?"
+\end{itemize}
+
+\textbf{4. Language barrier difficulties and summarizations}
+
+Prompts:
+\begin{itemize}
+    \item "Can you translate and summarize the assignment to catalan?"
+    \item "Correct any incorrect grammatical mistakes."
+\end{itemize}
+\[
+\]
+    \item Write a detailed critical reflection on how the use of the AI tools for this assignment has influenced both the process and the final outcome of the activity.
+\end{enumerate}
+
+Artificial Intelligence has contributed positively to this assignment, both in terms of the working process and the proofreading necessary to ensure that our work met the required standards. However, we must also acknowledge and reflect on our overreliance on this technology, as we sometimes relied on AI to reduce the amount of work we had to do ourselves, instead of making greater use of the material provided and other sources, such as Google.
+
+The main advantage was gaining a better understanding of certain concepts that were either unfamiliar to us or that we were unsure about. AI helped clarify the meaning of concepts such as Incidence Rate Ratios.
+
+Secondly, AI was also helpful with the more technical aspects of coding, helping us solve errors we encountered while writing in \LaTeX. For certain definitions or symbols we needed, the information was easily accessible through Google, although it was sometimes easy to be misled by Google's own AI assistant. Furthermore, AI helped improve the clarity and grammatical accuracy of our writing, since the English proficiency levels within our team varied considerably, and some members chose to use AI to correct their mistakes.
+
+We recognize that AI can be unreliable, which is why we tried to limit its use as a source of answers and instead use it as a support tool. This experience showed us that AI is helpful when used appropriately, allowing us to overcome technical difficulties, language barriers, and misunderstandings of certain concepts. We should use it as a complement to our own knowledge rather than as a replacement for it.
+\[
+\]
+Lack of transparency regarding the use of AI in this assignment will be considered academic misconduct and may result in a partial or total penalty on the grade for this activity, or more severe sanctions in serious cases.
+
+All authors (i.e., signatories) of this work share equal responsibility for its content and for the methods used to obtain the results. 
+
+In general, committing any irregularity in any assessment activity (academic fraud, plagiarism, or improper use of AI, unless explicitly authorized in the course syllabus) that could lead to a significant change in the grade will result in a score of 0 for that assessment. Independent of this, a disciplinary procedure may be initiated against any student committing such irregularities.
+
+\subsection{Impact on the assignment score}
+The content you present in Section \ref{sec:AIuse} will be evaluated in accordance with all details and tasks specified in Section \ref{sec:Instructions}. The result of this evaluation will be reflected in a score,
+$I \in [0, 100]$. The value of $I$ will affect the overall score of your assignment as follows. Let $A$ be the score for your assignment (resulting from the remaining sections); the final score for the assignment will be $A \times I/100$. Therefore, values of $I$ less than 100 will act as a
+penalty on your assignment score.
+
+
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{DollHill}
+ Doll R, Hill A.B. Mortality of British doctors in relation to smoking: Observations on coronary thrombosis. National Cancer Institute Monograph. 1966;19:205-268.
+\bibitem{breslow}
+ Breslow N.E. Cohort Analysis in Epidemiology. In A Celebration of Statistics A.C. Atkinson and S.E. Fienberg (editors). 1985;109-143. Springer-Verlag.
+\end{thebibliography}
+
+\end{document}
